@@ -2,6 +2,6 @@
 
 ![](images/cover.jpg)
 
-Code and materials for a post-grad module on people analytics.
+Code and materials for a two session teaching module on people analytics.
 
 
