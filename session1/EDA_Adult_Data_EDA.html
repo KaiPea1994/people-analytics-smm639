@@ -1,0 +1,1484 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+
+<meta charset="utf-8" />
+<meta name="generator" content="pandoc" />
+<meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
+
+
+<meta name="author" content="Prof Vali Asimit, Dr Simone Santoni and Dr Salvatore Scognamiglio" />
+
+<meta name="date" content="2020-10-23" />
+
+<title>Algorithmic Bias in Action: An Use Case on ’People Analytics`</title>
+
+<script src="EDA_Adult_Data_EDA_files/jquery-1.11.3/jquery.min.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link href="EDA_Adult_Data_EDA_files/bootstrap-3.3.5/css/bootstrap.min.css" rel="stylesheet" />
+<script src="EDA_Adult_Data_EDA_files/bootstrap-3.3.5/js/bootstrap.min.js"></script>
+<script src="EDA_Adult_Data_EDA_files/bootstrap-3.3.5/shim/html5shiv.min.js"></script>
+<script src="EDA_Adult_Data_EDA_files/bootstrap-3.3.5/shim/respond.min.js"></script>
+<script src="EDA_Adult_Data_EDA_files/navigation-1.1/tabsets.js"></script>
+<script src="EDA_Adult_Data_EDA_files/navigation-1.1/codefolding.js"></script>
+<link href="EDA_Adult_Data_EDA_files/highlightjs-9.12.0/default.css" rel="stylesheet" />
+<script src="EDA_Adult_Data_EDA_files/highlightjs-9.12.0/highlight.js"></script>
+
+
+<!-- Mathjax -->
+<script type='text/x-mathjax-config'>
+		MathJax.Hub.Config({
+			extensions: ['tex2jax.js'],
+			jax: ['input/TeX', 'output/HTML-CSS'],
+			tex2jax: {
+				inlineMath: [ ['$','$'], ['\\(','\\)'] ],
+				displayMath: [ ['$$','$$'], ['\\[','\\]'] ],
+				processEscapes: true
+			},
+			'HTML-CSS': { availableFonts: ['TeX'] }
+		});
+</script>
+
+<!-- The following code is for the quizzes -->
+<script src="https://surveyjs.azureedge.net/1.0.50/survey.jquery.js"></script>
+<link href="https://surveyjs.azureedge.net/1.0.50/survey.css" type="text/css" rel="stylesheet"/>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/showdown/1.6.4/showdown.min.js"></script>  
+
+<script>
+function markdownConverterEWF() {  
+//Create showdown markdown converter
+var converter = new showdown.Converter();
+converter.setOption('ghCompatibleHeaderId', true);
+survey
+    .onTextMarkdown
+    .add(function (survey, options) {
+        //convert the mardown text to html
+        var str = converter.makeHtml(options.text);
+        //remove root paragraphs <p></p>
+        str = str.substring(3);
+        str = str.substring(0, str.length - 4);
+        //set html
+        options.html = str;
+         MathJax.Hub.Queue(['Typeset',MathJax.Hub, 'options']);
+    });  
+};
+// Quiz Header info
+const jsonHeader = { 
+    showProgressBar: "bottom",
+    showTimerPanel: "none",
+    maxTimeToFinishPage: 10000,
+    maxTimeToFinish: 25000,
+    firstPageIsStarted: true,
+    startSurveyText: "Start Quiz" //,
+//    title: "Does This Make Sense?"
+}
+// One and Two question quizzes
+function jsonSummary1EWF(json) {  
+let jsonEnd1 = { 
+completedHtml: 
+json["pages"][1]["questions"][0]["name"]+ "<br>"+
+"<i>Question: </i>"+json["pages"][1]["questions"][0]["title"]+"<br>"+
+"<i>Answer: </i>"+json["pages"][1]["questions"][0]["correctAnswer"]
+};  
+return jsonEnd1;
+};
+
+
+function jsonSummary2EWF(json) {  
+let jsonEnd2 = { 
+completedHtml: 
+json["pages"][1]["questions"][0]["name"]+ "<br>"+
+"<i>Question: </i>"+json["pages"][1]["questions"][0]["title"]+"<br>"+
+"<i>Answer: </i>"+json["pages"][1]["questions"][0]["correctAnswer"]
++"<br>"+
+json["pages"][2]["questions"][0]["name"]+ "<br>"+
+"<i>Question: </i>"+json["pages"][2]["questions"][0]["title"]+"<br>"+
+"<i>Answer: </i>"+json["pages"][2]["questions"][0]["correctAnswer"]
+};  
+return jsonEnd2;
+};
+
+// Three, four, and five question quizzes
+function jsonSummary3EWF(json) {  
+let jsonEnd3 = { 
+completedHtml: 
+json["pages"][1]["questions"][0]["name"]+ "<br>"+
+"<i>Question: </i>"+json["pages"][1]["questions"][0]["title"]+"<br>"+
+"<i>Answer: </i>"+json["pages"][1]["questions"][0]["correctAnswer"]
++"<br>"+
+json["pages"][2]["questions"][0]["name"]+ "<br>"+
+"<i>Question: </i>"+json["pages"][2]["questions"][0]["title"]+"<br>"+
+"<i>Answer: </i>"+json["pages"][2]["questions"][0]["correctAnswer"]
++"<br>"+
+json["pages"][3]["questions"][0]["name"]+ "<br>"+
+"<i>Question: </i>"+json["pages"][3]["questions"][0]["title"]+"<br>"+
+"<i>Answer: </i>"+json["pages"][3]["questions"][0]["correctAnswer"]
+};  
+return jsonEnd3;
+};
+
+function jsonSummary4EWF(json) {  
+jsonEnd4 = jsonSummary3EWF(json);
+jsonEnd4.completedHtml = jsonEnd4.completedHtml +  
+"<br>"+
+json["pages"][4]["questions"][0]["name"]+ "<br>"+
+"<i>Question: </i>"+json["pages"][4]["questions"][0]["title"]+"<br>"+
+"<i>Answer: </i>"+json["pages"][4]["questions"][0]["correctAnswer"]
+;  
+return jsonEnd4;
+};
+
+function jsonSummary5EWF(json) {  
+jsonEnd5 = jsonSummary4EWF(json);
+jsonEnd5.completedHtml = jsonEnd5.completedHtml +  
+"<br>"+
+json["pages"][5]["questions"][0]["name"]+ "<br>"+
+"<i>Question: </i>"+json["pages"][5]["questions"][0]["title"]+"<br>"+
+"<i>Answer: </i>"+json["pages"][5]["questions"][0]["correctAnswer"]
+;  
+return jsonEnd5;
+};
+
+function jsonSummary6EWF(json) {  
+jsonEnd6 = jsonSummary5EWF(json);
+jsonEnd6.completedHtml = jsonEnd6.completedHtml +  
+"<br>"+
+json["pages"][6]["questions"][0]["name"]+ "<br>"+
+"<i>Question: </i>"+json["pages"][6]["questions"][0]["title"]+"<br>"+
+"<i>Answer: </i>"+json["pages"][6]["questions"][0]["correctAnswer"]
+;  
+return jsonEnd6;
+};
+
+function jsonSummary7EWF(json) {  
+jsonEnd7 = jsonSummary6EWF(json);
+jsonEnd7.completedHtml = jsonEnd7.completedHtml +  
+"<br>"+
+json["pages"][7]["questions"][0]["name"]+ "<br>"+
+"<i>Question: </i>"+json["pages"][7]["questions"][0]["title"]+"<br>"+
+"<i>Answer: </i>"+json["pages"][7]["questions"][0]["correctAnswer"]
+;  
+return jsonEnd7;
+};
+
+function jsonSummary8EWF(json) {  
+jsonEnd8 = jsonSummary7EWF(json);
+jsonEnd8.completedHtml = jsonEnd8.completedHtml +  
+"<br>"+
+json["pages"][8]["questions"][0]["name"]+ "<br>"+
+"<i>Question: </i>"+json["pages"][8]["questions"][0]["title"]+"<br>"+
+"<i>Answer: </i>"+json["pages"][8]["questions"][0]["correctAnswer"]
+;  
+return jsonEnd8;
+};
+
+function jsonSummary9EWF(json) {  
+jsonEnd9 = jsonSummary8EWF(json);
+jsonEnd9.completedHtml = jsonEnd9.completedHtml +  
+"<br>"+
+json["pages"][9]["questions"][0]["name"]+ "<br>"+
+"<i>Question: </i>"+json["pages"][9]["questions"][0]["title"]+"<br>"+
+"<i>Answer: </i>"+json["pages"][9]["questions"][0]["correctAnswer"]
+;  
+return jsonEnd9;
+};
+
+
+function jsonSummary10EWF(json) {  
+jsonEnd10 = jsonSummary9EWF(json);
+jsonEnd10.completedHtml = jsonEnd10.completedHtml +  
+"<br>"+
+json["pages"][10]["questions"][0]["name"]+ "<br>"+
+"<i>Question: </i>"+json["pages"][10]["questions"][0]["title"]+"<br>"+
+"<i>Answer: </i>"+json["pages"][10]["questions"][0]["correctAnswer"]
+;  
+return jsonEnd10;
+};
+
+
+function jsonSummary11EWF(json) {  
+jsonEnd11 = jsonSummary10EWF(json);
+jsonEnd11.completedHtml = jsonEnd11.completedHtml +  
+"<br>"+
+json["pages"][11]["questions"][0]["name"]+ "<br>"+
+"<i>Question: </i>"+json["pages"][11]["questions"][0]["title"]+"<br>"+
+"<i>Answer: </i>"+json["pages"][11]["questions"][0]["correctAnswer"]
+;  
+return jsonEnd11;
+};
+
+
+
+</script>  
+<!-- This completes the code for the quizzes -->
+
+
+<!-- Various toggle functions used throughout --> 
+<script language="javascript">
+function toggle(id1,id2) {
+	var ele = document.getElementById(id1); var text = document.getElementById(id2);
+	if (ele.style.display == "block") {ele.style.display = "none"; text.innerHTML = "Show Solution";}
+		else {ele.style.display = "block"; text.innerHTML = "Hide Solution";}}
+function togglecode(id1,id2) {
+   var ele = document.getElementById(id1); var text = document.getElementById(id2);
+   if (ele.style.display == "block") {ele.style.display = "none"; text.innerHTML = "Show R Code";}
+      else {ele.style.display = "block"; text.innerHTML = "Hide R Code";}}
+function toggleEX(id1,id2) {
+   var ele = document.getElementById(id1); var text = document.getElementById(id2);
+   if (ele.style.display == "block") {ele.style.display = "none"; text.innerHTML = "Show Example";}
+      else {ele.style.display = "block"; text.innerHTML = "Hide Example";}}
+function toggleTheory(id1,id2) {
+   var ele = document.getElementById(id1); var text = document.getElementById(id2);
+   if (ele.style.display == "block") {ele.style.display = "none"; text.innerHTML = "Show Theory";}
+      else {ele.style.display = "block"; text.innerHTML = "Hide Theory";}}
+function toggleQuiz(id1,id2) {
+   var ele = document.getElementById(id1); var text = document.getElementById(id2);
+   if (ele.style.display == "block") {ele.style.display = "none"; text.innerHTML = "Show Quiz Solution";}
+      else {ele.style.display = "block"; text.innerHTML = "Hide Quiz Solution";}}      
+</script>
+
+<!-- A few functions for revealing definitions -->
+<script language="javascript">
+<!--   $( function() {
+    $("#tabs").tabs();
+  } ); -->
+
+$(document).ready(function(){
+    $('[data-toggle="tooltip"]').tooltip();
+});
+
+$(document).ready(function(){
+    $('[data-toggle="popover"]').popover(); 
+});
+</script>
+
+<script language="javascript">
+function openTab(evt, tabName) {
+    var i, tabcontent, tablinks;
+    tabcontent = document.getElementsByClassName("tabcontent");
+    for (i = 0; i < tabcontent.length; i++) {
+        tabcontent[i].style.display = "none";
+    }
+    tablinks = document.getElementsByClassName("tablinks");
+    for (i = 0; i < tablinks.length; i++) {
+        tablinks[i].className = tablinks[i].className.replace(" active", "");
+    }
+    document.getElementById(tabName).style.display = "block";
+    evt.currentTarget.className += " active";
+}
+
+// Get the element with id="defaultOpen" and click on it
+document.getElementById("defaultOpen").click();
+</script>
+
+
+<!-- Global site tag (gtag.js) - Google Analytics -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=UA-125587869-1"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'UA-125587869-1');
+</script>
+
+<style type="text/css">code{white-space: pre;}</style>
+<style type="text/css">
+  pre:not([class]) {
+    background-color: white;
+  }
+</style>
+<script type="text/javascript">
+if (window.hljs) {
+  hljs.configure({languages: []});
+  hljs.initHighlightingOnLoad();
+  if (document.readyState && document.readyState === "complete") {
+    window.setTimeout(function() { hljs.initHighlighting(); }, 0);
+  }
+}
+</script>
+
+
+
+<style type="text/css">
+h1 {
+  font-size: 34px;
+}
+h1.title {
+  font-size: 38px;
+}
+h2 {
+  font-size: 30px;
+}
+h3 {
+  font-size: 24px;
+}
+h4 {
+  font-size: 18px;
+}
+h5 {
+  font-size: 16px;
+}
+h6 {
+  font-size: 12px;
+}
+.table th:not([align]) {
+  text-align: left;
+}
+</style>
+
+<link rel="stylesheet" href="WritingSupportFiles\style.css" type="text/css" />
+
+
+
+<style type = "text/css">
+.main-container {
+  max-width: 940px;
+  margin-left: auto;
+  margin-right: auto;
+}
+code {
+  color: inherit;
+  background-color: rgba(0, 0, 0, 0.04);
+}
+img {
+  max-width:100%;
+}
+.tabbed-pane {
+  padding-top: 12px;
+}
+.html-widget {
+  margin-bottom: 20px;
+}
+button.code-folding-btn:focus {
+  outline: none;
+}
+summary {
+  display: list-item;
+}
+</style>
+
+
+
+<!-- tabsets -->
+
+<style type="text/css">
+.tabset-dropdown > .nav-tabs {
+  display: inline-table;
+  max-height: 500px;
+  min-height: 44px;
+  overflow-y: auto;
+  background: white;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+}
+
+.tabset-dropdown > .nav-tabs > li.active:before {
+  content: "";
+  font-family: 'Glyphicons Halflings';
+  display: inline-block;
+  padding: 10px;
+  border-right: 1px solid #ddd;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open > li.active:before {
+  content: "&#xe258;";
+  border: none;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open:before {
+  content: "";
+  font-family: 'Glyphicons Halflings';
+  display: inline-block;
+  padding: 10px;
+  border-right: 1px solid #ddd;
+}
+
+.tabset-dropdown > .nav-tabs > li.active {
+  display: block;
+}
+
+.tabset-dropdown > .nav-tabs > li > a,
+.tabset-dropdown > .nav-tabs > li > a:focus,
+.tabset-dropdown > .nav-tabs > li > a:hover {
+  border: none;
+  display: inline-block;
+  border-radius: 4px;
+  background-color: transparent;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open > li {
+  display: block;
+  float: none;
+}
+
+.tabset-dropdown > .nav-tabs > li {
+  display: none;
+}
+</style>
+
+<!-- code folding -->
+<style type="text/css">
+.code-folding-btn { margin-bottom: 4px; }
+</style>
+
+
+
+
+</head>
+
+<body>
+
+
+<div class="container-fluid main-container">
+
+
+
+
+<div class="fluid-row" id="header">
+
+<div class="btn-group pull-right">
+<button type="button" class="btn btn-default btn-xs dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><span>Code</span> <span class="caret"></span></button>
+<ul class="dropdown-menu" style="min-width: 50px;">
+<li><a id="rmd-show-all-code" href="#">Show All Code</a></li>
+<li><a id="rmd-hide-all-code" href="#">Hide All Code</a></li>
+</ul>
+</div>
+
+
+
+<h1 class="title toc-ignore">Algorithmic Bias in Action: An Use Case on ’People Analytics`</h1>
+<h4 class="author">Prof Vali Asimit, Dr Simone Santoni and Dr Salvatore Scognamiglio</h4>
+<h4 class="date">October 23, 2020</h4>
+
+</div>
+
+<div id="TOC">
+<ul>
+<li><a href="#DD"><span class="toc-section-number">1</span> Data Description</a></li>
+<li><a href="#EDA"><span class="toc-section-number">2</span> Exploratory Data Analaysis</a><ul>
+<li><a href="#EDA:QuanDE"><span class="toc-section-number">2.1</span> Quantitative Data Explorations</a></li>
+<li><a href="#EDA:QualDE"><span class="toc-section-number">2.2</span> Qualitative Data Explorations</a></li>
+</ul></li>
+</ul>
+</div>
+
+<!-- ```{r echo = FALSE, child="WritingSupportFiles\\Packages.Rmd", warning=FALSE,message=FALSE} -->
+<!-- ``` -->
+<div id="DD" class="section level1">
+<h1><span class="header-section-number">1</span> Data Description</h1>
+<p>The <code>Adult</code> dataset contains <span class="math inline">\(48,842\)</span> examples – or <span class="math inline">\(45,222\)</span> if those examples with unknown values are removed – of
+<span class="math display">\[(\textbf{x}_i,y_i) \quad \text{with}\; 1\le i \le 48,842 \;\text{or}\; 45,222\]</span>
+where <span class="math inline">\(\textbf{x}_i\)</span> and <span class="math inline">\(y_i\)</span> contain the feature values and label, respectively for the <span class="math inline">\(i^{th}\)</span> example. Note that there are six duplicate and conflicting instances that could be removed as well. The labels <span class="math inline">\(y\)</span>’s is a binary variable that explains whether the individual has an income (strictly) greater than <span class="math inline">\(USD50,000\)</span>, denoted as <span class="math inline">\(&gt;50K\)</span>, or her/his income is not larger than <span class="math inline">\(USD50,000\)</span>, denoted as <span class="math inline">\(&lt;=50K\)</span>. Within each class, the labels are observed as follows:</p>
+<ul>
+<li>Probability for the label <span class="math inline">\(&gt;50K\)</span> is 23.93% in the whole dataframe or 24.78% if the unknown values are removed;</li>
+<li>Probability for the label <span class="math inline">\(&lt;=50K\)</span> is 76.07% in the whole dataframe or 75.22% if the unknown values are removed.</li>
+</ul>
+<p>The feature values <span class="math inline">\(\textbf{x}\)</span>’s include information about the following 14 features:</p>
+<ol style="list-style-type: lower-roman">
+<li><em>Age</em> – continuous variable;</li>
+<li><em>Workclass</em> – categorical variable with 8 possible values: <code>Private</code>, <code>Self-emp-not-inc</code>, <code>Self-emp-inc</code>, <code>Federal-gov</code>, <code>Local-gov</code>, <code>State-gov</code>, <code>Without-pay</code> and <code>Never-worked</code>;</li>
+<li><em>Fnlwgt</em> abbreviated from <em>final weight</em> – a composite socio-economic feature that is a continuous variable;</li>
+<li><em>Education</em> – categorical variable with 16 possible values: <code>Bachelors</code>, <code>Some-college</code>, <code>11th</code>, <code>HS-grad</code>, <code>Prof-school</code>, <code>Assoc-acdm</code>, <code>Assoc-voc</code>, <code>9th</code>, <code>7th-8th</code>, <code>12th</code>, <code>Masters</code>, <code>1st-4th</code>, <code>10th</code>, <code>Doctorate</code>, <code>5th-6th</code>, <code>Preschool</code>;</li>
+<li><em>Education-num</em> – continuous variable;</li>
+<li><em>Marital-status</em> – categorical variable with 7 possible values: <code>Married-civ-spouse</code>, <code>Divorced</code>, <code>Never-married</code>, <code>Separated</code>, <code>Widowed</code>, <code>Married-spouse-absent</code> and <code>Married-AF-spouse</code>;</li>
+<li><em>Occupation</em> – categorical variable with 14 possible values: <code>Tech-support</code>, <code>Craft-repair</code>, <code>Other-service</code>, <code>Sales</code>, <code>Exec-managerial</code>, <code>Prof-specialty</code>, <code>Handlers-cleaners</code>, <code>Machine-op-inspct</code>, <code>Adm-clerical</code>, <code>Farming-fishing</code>, <code>Transport-moving</code>, <code>Priv-house-serv</code>, <code>Protective-serv</code> and <code>Armed-Forces</code>;</li>
+<li><em>Relationship</em> – categorical variable with 6 possible values: <code>Wife</code>, <code>Own-child</code>, <code>Husband</code>, <code>Not-in-family</code>, <code>Other-relative</code> and <code>Unmarried</code>;</li>
+<li><em>Race</em> – categorical variable with 5 possible values: <code>White</code>, <code>Asian-Pac-Islander</code>, <code>Amer-Indian-Eskimo</code>, <code>Other</code> and <code>Black</code>;</li>
+<li><em>Sex</em> – categorical variable with 2 possible values: <code>Female</code> and <code>Male</code>;</li>
+<li><em>Capital-gain</em> – continuous variable;</li>
+<li><em>Capital-loss</em> – continuous variable;</li>
+<li><em>Hours-per-week</em> – continuous variable;</li>
+<li><em>Native-country</em> – categorical variable with 41 possible values: <code>United-States</code>, <code>Cambodia</code>, <code>England</code>, <code>Puerto-Rico</code>, <code>Canada</code>, <code>Germany</code>, <code>Outlying-US(Guam-USVI-etc)</code>, <code>India</code>, <code>Japan</code>, <code>Greece</code>, <code>South</code>, <code>China</code>, <code>Cuba</code>, <code>Iran</code>, <code>Honduras</code>, <code>Philippines</code>, <code>Italy</code>, <code>Poland</code>, <code>Jamaica</code>, <code>Vietnam</code>, <code>Mexico</code>, <code>Portugal</code>, <code>Ireland</code>, <code>France</code>, <code>Dominican-Republic</code>, <code>Laos</code>, <code>Ecuador</code>, <code>Taiwan</code>, <code>Haiti</code>, <code>Columbia</code>, <code>Hungary</code>, <code>Guatemala</code>, <code>Nicaragua</code>, <code>Scotland</code>, <code>Thailand</code>, <code>Yugoslavia</code>, <code>El-Salvador</code>, <code>Trinadad\&amp;Tobago</code>, <code>Peru</code>, <code>Hong</code> and <code>Holand-Netherlands</code>.</li>
+</ol>
+<p>The data file named <code>adult.data</code> could be downloaded from (<a href="http://archive.ics.uci.edu/ml/datasets/Adult" class="uri">http://archive.ics.uci.edu/ml/datasets/Adult</a>), but a small <code>snapshoot</code> of the data is given in Table <a href="#tab:AdultTabTrain1">2.1</a>. A full <em>Exploratory Data Analaysis</em> is provided in Section <a href="#EDA">2</a>, which explains the data structure in greater details.</p>
+</div>
+<div id="EDA" class="section level1">
+<h1><span class="header-section-number">2</span> Exploratory Data Analaysis</h1>
+<p>Before making any inferences about the data, we first perform simple manipulations over the given dataframe in order to better explain the final data analysis. There are two basic explorations that we run, one is based on <em>quantitave</em> measurements as described in Section <a href="#EDA:QuanDE">2.1</a>, while the other one is based on <em>qualitative</em> assessments – including data visualisations – as described in Section <a href="#EDA:QualDE">2.2</a>.</p>
+<div id="EDA:QuanDE" class="section level2">
+<h2><span class="header-section-number">2.1</span> Quantitative Data Explorations</h2>
+<p>We first start by looking at the (training) data for which a small snapshoot is given as in Table <a href="#tab:AdultTabTrain1">2.1</a> below, which is followed by a summary statistics.</p>
+<pre class="r"><code>library(knitr)
+library(data.table)
+adult_data_train &lt;- fread(&quot;SuppMaterial/adult.data&quot;,data.table=FALSE,sep=&quot;,&quot;) #R reads more efficiently larger files with `fread`
+colnames(adult_data_train) &lt;- c(&quot;X1&quot;, &quot;X2&quot;, &quot;X3&quot;,&quot;X4&quot;, &quot;X5&quot;, &quot;X6&quot;, &quot;X7&quot;, &quot;X8&quot;, &quot;X9&quot;,&quot;X10&quot;, &quot;X11&quot;, &quot;X12&quot;,&quot;X13&quot;, &quot;X14&quot;, &quot;Y&quot; )
+kable(head(adult_data_train), caption=&quot;Adult (Train) Data Snapshoot&quot;,align = &quot;rlrlrlllllrrrlr&quot;, format.args = list(big.mark = &quot;,&quot;))</code></pre>
+<table>
+<caption><span id="tab:AdultTabTrain1">Table 2.1: </span>Adult (Train) Data Snapshoot</caption>
+<colgroup>
+<col width="2%" />
+<col width="12%" />
+<col width="5%" />
+<col width="7%" />
+<col width="2%" />
+<col width="13%" />
+<col width="12%" />
+<col width="10%" />
+<col width="4%" />
+<col width="5%" />
+<col width="4%" />
+<col width="2%" />
+<col width="2%" />
+<col width="10%" />
+<col width="4%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th align="right">X1</th>
+<th align="left">X2</th>
+<th align="right">X3</th>
+<th align="left">X4</th>
+<th align="right">X5</th>
+<th align="left">X6</th>
+<th align="left">X7</th>
+<th align="left">X8</th>
+<th align="left">X9</th>
+<th align="left">X10</th>
+<th align="right">X11</th>
+<th align="right">X12</th>
+<th align="right">X13</th>
+<th align="left">X14</th>
+<th align="right">Y</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="right">39</td>
+<td align="left">State-gov</td>
+<td align="right">77,516</td>
+<td align="left">Bachelors</td>
+<td align="right">13</td>
+<td align="left">Never-married</td>
+<td align="left">Adm-clerical</td>
+<td align="left">Not-in-family</td>
+<td align="left">White</td>
+<td align="left">Male</td>
+<td align="right">2,174</td>
+<td align="right">0</td>
+<td align="right">40</td>
+<td align="left">United-States</td>
+<td align="right">&lt;=50K</td>
+</tr>
+<tr class="even">
+<td align="right">50</td>
+<td align="left">Self-emp-not-inc</td>
+<td align="right">83,311</td>
+<td align="left">Bachelors</td>
+<td align="right">13</td>
+<td align="left">Married-civ-spouse</td>
+<td align="left">Exec-managerial</td>
+<td align="left">Husband</td>
+<td align="left">White</td>
+<td align="left">Male</td>
+<td align="right">0</td>
+<td align="right">0</td>
+<td align="right">13</td>
+<td align="left">United-States</td>
+<td align="right">&lt;=50K</td>
+</tr>
+<tr class="odd">
+<td align="right">38</td>
+<td align="left">Private</td>
+<td align="right">215,646</td>
+<td align="left">HS-grad</td>
+<td align="right">9</td>
+<td align="left">Divorced</td>
+<td align="left">Handlers-cleaners</td>
+<td align="left">Not-in-family</td>
+<td align="left">White</td>
+<td align="left">Male</td>
+<td align="right">0</td>
+<td align="right">0</td>
+<td align="right">40</td>
+<td align="left">United-States</td>
+<td align="right">&lt;=50K</td>
+</tr>
+<tr class="even">
+<td align="right">53</td>
+<td align="left">Private</td>
+<td align="right">234,721</td>
+<td align="left">11th</td>
+<td align="right">7</td>
+<td align="left">Married-civ-spouse</td>
+<td align="left">Handlers-cleaners</td>
+<td align="left">Husband</td>
+<td align="left">Black</td>
+<td align="left">Male</td>
+<td align="right">0</td>
+<td align="right">0</td>
+<td align="right">40</td>
+<td align="left">United-States</td>
+<td align="right">&lt;=50K</td>
+</tr>
+<tr class="odd">
+<td align="right">28</td>
+<td align="left">Private</td>
+<td align="right">338,409</td>
+<td align="left">Bachelors</td>
+<td align="right">13</td>
+<td align="left">Married-civ-spouse</td>
+<td align="left">Prof-specialty</td>
+<td align="left">Wife</td>
+<td align="left">Black</td>
+<td align="left">Female</td>
+<td align="right">0</td>
+<td align="right">0</td>
+<td align="right">40</td>
+<td align="left">Cuba</td>
+<td align="right">&lt;=50K</td>
+</tr>
+<tr class="even">
+<td align="right">37</td>
+<td align="left">Private</td>
+<td align="right">284,582</td>
+<td align="left">Masters</td>
+<td align="right">14</td>
+<td align="left">Married-civ-spouse</td>
+<td align="left">Exec-managerial</td>
+<td align="left">Wife</td>
+<td align="left">White</td>
+<td align="left">Female</td>
+<td align="right">0</td>
+<td align="right">0</td>
+<td align="right">40</td>
+<td align="left">United-States</td>
+<td align="right">&lt;=50K</td>
+</tr>
+</tbody>
+</table>
+<pre class="r"><code>summary(adult_data_train)</code></pre>
+<pre><code>       X1             X2                  X3               X4           
+ Min.   :17.00   Length:32561       Min.   :  12285   Length:32561      
+ 1st Qu.:28.00   Class :character   1st Qu.: 117827   Class :character  
+ Median :37.00   Mode  :character   Median : 178356   Mode  :character  
+ Mean   :38.58                      Mean   : 189778                     
+ 3rd Qu.:48.00                      3rd Qu.: 237051                     
+ Max.   :90.00                      Max.   :1484705                     
+       X5             X6                 X7                 X8           
+ Min.   : 1.00   Length:32561       Length:32561       Length:32561      
+ 1st Qu.: 9.00   Class :character   Class :character   Class :character  
+ Median :10.00   Mode  :character   Mode  :character   Mode  :character  
+ Mean   :10.08                                                           
+ 3rd Qu.:12.00                                                           
+ Max.   :16.00                                                           
+      X9                X10                 X11             X12        
+ Length:32561       Length:32561       Min.   :    0   Min.   :   0.0  
+ Class :character   Class :character   1st Qu.:    0   1st Qu.:   0.0  
+ Mode  :character   Mode  :character   Median :    0   Median :   0.0  
+                                       Mean   : 1078   Mean   :  87.3  
+                                       3rd Qu.:    0   3rd Qu.:   0.0  
+                                       Max.   :99999   Max.   :4356.0  
+      X13            X14                 Y            
+ Min.   : 1.00   Length:32561       Length:32561      
+ 1st Qu.:40.00   Class :character   Class :character  
+ Median :40.00   Mode  :character   Mode  :character  
+ Mean   :40.44                                        
+ 3rd Qu.:45.00                                        
+ Max.   :99.00                                        </code></pre>
+<p>Note that the above refers to the training data and has a sample size of <span class="math inline">\(32,561\)</span>, i.e. around <span class="math inline">\(2/3\)</span> from the whole data <span class="math inline">\(48,842\)</span> and not from its <code>cleaned</code> version that is of size <span class="math inline">\(45,222\)</span>; we will see later that the <code>cleaned</code> training data are of size <span class="math inline">\(30,162\)</span>, i.e. around <span class="math inline">\(1/3\)</span> from the total sample of size <span class="math inline">\(45,222\)</span>. Similarly, a (testing) data for which a small snapshoot is given as in Table <a href="#tab:AdultTabTest1">2.2</a> below, which is again followed by a summary statistics. Note that the testing data and has a sample size of <span class="math inline">\(16,281\)</span>, i.e. around <span class="math inline">\(1/3\)</span> from the whole data <span class="math inline">\(48,842\)</span> and not from its <code>cleaned</code> version that is of size <span class="math inline">\(45,222\)</span>; we will see later that the <code>cleaned</code> testing data are of size <span class="math inline">\(15,060\)</span>, i.e. around <span class="math inline">\(1/3\)</span> from the total sample of size <span class="math inline">\(45,222\)</span>. Splitting the data into training and testing as <span class="math inline">\(2/3\)</span> and <span class="math inline">\(1/3\)</span> is a standard in machine learning inquiries.</p>
+<pre class="r"><code>adult_data_test &lt;- fread(&quot;SuppMaterial/adult-1.test&quot;,data.table=FALSE,sep=&quot;,&quot;)
+colnames(adult_data_test) &lt;- c(&quot;X1&quot;, &quot;X2&quot;, &quot;X3&quot;,&quot;X4&quot;, &quot;X5&quot;, &quot;X6&quot;, &quot;X7&quot;, &quot;X8&quot;, &quot;X9&quot;,&quot;X10&quot;, &quot;X11&quot;, &quot;X12&quot;,&quot;X13&quot;, &quot;X14&quot;, &quot;Y&quot; )
+kable(head(adult_data_test), caption=&quot;Adult (Test) Data Snapshoot&quot;,align = &quot;rlrlrlllllrrrlr&quot;, format.args = list(big.mark = &quot;,&quot;))</code></pre>
+<table style="width:100%;">
+<caption><span id="tab:AdultTabTest1">Table 2.2: </span>Adult (Test) Data Snapshoot</caption>
+<colgroup>
+<col width="2%" />
+<col width="7%" />
+<col width="5%" />
+<col width="9%" />
+<col width="2%" />
+<col width="13%" />
+<col width="13%" />
+<col width="10%" />
+<col width="4%" />
+<col width="5%" />
+<col width="4%" />
+<col width="2%" />
+<col width="2%" />
+<col width="10%" />
+<col width="5%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th align="right">X1</th>
+<th align="left">X2</th>
+<th align="right">X3</th>
+<th align="left">X4</th>
+<th align="right">X5</th>
+<th align="left">X6</th>
+<th align="left">X7</th>
+<th align="left">X8</th>
+<th align="left">X9</th>
+<th align="left">X10</th>
+<th align="right">X11</th>
+<th align="right">X12</th>
+<th align="right">X13</th>
+<th align="left">X14</th>
+<th align="right">Y</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="right">25</td>
+<td align="left">Private</td>
+<td align="right">226,802</td>
+<td align="left">11th</td>
+<td align="right">7</td>
+<td align="left">Never-married</td>
+<td align="left">Machine-op-inspct</td>
+<td align="left">Own-child</td>
+<td align="left">Black</td>
+<td align="left">Male</td>
+<td align="right">0</td>
+<td align="right">0</td>
+<td align="right">40</td>
+<td align="left">United-States</td>
+<td align="right">&lt;=50K.</td>
+</tr>
+<tr class="even">
+<td align="right">38</td>
+<td align="left">Private</td>
+<td align="right">89,814</td>
+<td align="left">HS-grad</td>
+<td align="right">9</td>
+<td align="left">Married-civ-spouse</td>
+<td align="left">Farming-fishing</td>
+<td align="left">Husband</td>
+<td align="left">White</td>
+<td align="left">Male</td>
+<td align="right">0</td>
+<td align="right">0</td>
+<td align="right">50</td>
+<td align="left">United-States</td>
+<td align="right">&lt;=50K.</td>
+</tr>
+<tr class="odd">
+<td align="right">28</td>
+<td align="left">Local-gov</td>
+<td align="right">336,951</td>
+<td align="left">Assoc-acdm</td>
+<td align="right">12</td>
+<td align="left">Married-civ-spouse</td>
+<td align="left">Protective-serv</td>
+<td align="left">Husband</td>
+<td align="left">White</td>
+<td align="left">Male</td>
+<td align="right">0</td>
+<td align="right">0</td>
+<td align="right">40</td>
+<td align="left">United-States</td>
+<td align="right">&gt;50K.</td>
+</tr>
+<tr class="even">
+<td align="right">44</td>
+<td align="left">Private</td>
+<td align="right">160,323</td>
+<td align="left">Some-college</td>
+<td align="right">10</td>
+<td align="left">Married-civ-spouse</td>
+<td align="left">Machine-op-inspct</td>
+<td align="left">Husband</td>
+<td align="left">Black</td>
+<td align="left">Male</td>
+<td align="right">7,688</td>
+<td align="right">0</td>
+<td align="right">40</td>
+<td align="left">United-States</td>
+<td align="right">&gt;50K.</td>
+</tr>
+<tr class="odd">
+<td align="right">18</td>
+<td align="left">?</td>
+<td align="right">103,497</td>
+<td align="left">Some-college</td>
+<td align="right">10</td>
+<td align="left">Never-married</td>
+<td align="left">?</td>
+<td align="left">Own-child</td>
+<td align="left">White</td>
+<td align="left">Female</td>
+<td align="right">0</td>
+<td align="right">0</td>
+<td align="right">30</td>
+<td align="left">United-States</td>
+<td align="right">&lt;=50K.</td>
+</tr>
+<tr class="even">
+<td align="right">34</td>
+<td align="left">Private</td>
+<td align="right">198,693</td>
+<td align="left">10th</td>
+<td align="right">6</td>
+<td align="left">Never-married</td>
+<td align="left">Other-service</td>
+<td align="left">Not-in-family</td>
+<td align="left">White</td>
+<td align="left">Male</td>
+<td align="right">0</td>
+<td align="right">0</td>
+<td align="right">30</td>
+<td align="left">United-States</td>
+<td align="right">&lt;=50K.</td>
+</tr>
+</tbody>
+</table>
+<pre class="r"><code>summary(adult_data_test)</code></pre>
+<pre><code>       X1             X2                  X3               X4           
+ Min.   :17.00   Length:16281       Min.   :  13492   Length:16281      
+ 1st Qu.:28.00   Class :character   1st Qu.: 116736   Class :character  
+ Median :37.00   Mode  :character   Median : 177831   Mode  :character  
+ Mean   :38.77                      Mean   : 189436                     
+ 3rd Qu.:48.00                      3rd Qu.: 238384                     
+ Max.   :90.00                      Max.   :1490400                     
+       X5             X6                 X7                 X8           
+ Min.   : 1.00   Length:16281       Length:16281       Length:16281      
+ 1st Qu.: 9.00   Class :character   Class :character   Class :character  
+ Median :10.00   Mode  :character   Mode  :character   Mode  :character  
+ Mean   :10.07                                                           
+ 3rd Qu.:12.00                                                           
+ Max.   :16.00                                                           
+      X9                X10                 X11             X12        
+ Length:16281       Length:16281       Min.   :    0   Min.   :   0.0  
+ Class :character   Class :character   1st Qu.:    0   1st Qu.:   0.0  
+ Mode  :character   Mode  :character   Median :    0   Median :   0.0  
+                                       Mean   : 1082   Mean   :  87.9  
+                                       3rd Qu.:    0   3rd Qu.:   0.0  
+                                       Max.   :99999   Max.   :3770.0  
+      X13            X14                 Y            
+ Min.   : 1.00   Length:16281       Length:16281      
+ 1st Qu.:40.00   Class :character   Class :character  
+ Median :40.00   Mode  :character   Mode  :character  
+ Mean   :40.39                                        
+ 3rd Qu.:45.00                                        
+ Max.   :99.00                                        </code></pre>
+<p>Let us clean the training data and eliminate the missing values that are identified as <code>?</code> in the master (training) file named <code>adult.data</code>, which gives you a glimpse of the actual cleaned (training) data that will be further used from now on.</p>
+<pre class="r"><code>adult_data_train_clean &lt;- adult_data_train
+adult_data_train_clean$isNA &lt;- apply(adult_data_train_clean,1,function(x) any(x==&quot;?&quot;))  #find the examples with missing values (have `?`) and marked them 
+adult_data_train_clean &lt;- adult_data_train_clean[-which(adult_data_train_clean$isNA==TRUE),] #eliminate the examples that were marked 
+summary(adult_data_train_clean)</code></pre>
+<pre><code>       X1             X2                  X3               X4           
+ Min.   :17.00   Length:30162       Min.   :  13769   Length:30162      
+ 1st Qu.:28.00   Class :character   1st Qu.: 117627   Class :character  
+ Median :37.00   Mode  :character   Median : 178425   Mode  :character  
+ Mean   :38.44                      Mean   : 189794                     
+ 3rd Qu.:47.00                      3rd Qu.: 237629                     
+ Max.   :90.00                      Max.   :1484705                     
+       X5             X6                 X7                 X8           
+ Min.   : 1.00   Length:30162       Length:30162       Length:30162      
+ 1st Qu.: 9.00   Class :character   Class :character   Class :character  
+ Median :10.00   Mode  :character   Mode  :character   Mode  :character  
+ Mean   :10.12                                                           
+ 3rd Qu.:13.00                                                           
+ Max.   :16.00                                                           
+      X9                X10                 X11             X12         
+ Length:30162       Length:30162       Min.   :    0   Min.   :   0.00  
+ Class :character   Class :character   1st Qu.:    0   1st Qu.:   0.00  
+ Mode  :character   Mode  :character   Median :    0   Median :   0.00  
+                                       Mean   : 1092   Mean   :  88.37  
+                                       3rd Qu.:    0   3rd Qu.:   0.00  
+                                       Max.   :99999   Max.   :4356.00  
+      X13            X14                 Y                isNA        
+ Min.   : 1.00   Length:30162       Length:30162       Mode :logical  
+ 1st Qu.:40.00   Class :character   Class :character   FALSE:30162    
+ Median :40.00   Mode  :character   Mode  :character                  
+ Mean   :40.93                                                        
+ 3rd Qu.:45.00                                                        
+ Max.   :99.00                                                        </code></pre>
+<p>One might have noticed that the working (training) data file, namely <code>adult_data_train_clean</code> has one extra column that signifies whether missing values are present in a given example, so that we easily eliminate the examples having missing values. We could see that the sample size is now reduced to <span class="math inline">\(30,162\)</span> as anticipated before. Let us check the number of columns for the two training data.</p>
+<pre class="r"><code>ncol(adult_data_train_clean)</code></pre>
+<pre><code>## [1] 16</code></pre>
+<pre class="r"><code>ncol(adult_data_train)</code></pre>
+<pre><code>## [1] 15</code></pre>
+<p>Similarly, a summary of the actual cleaned (testing) data – that will be further used from now on – is as follows:</p>
+<pre class="r"><code>adult_data_test_clean &lt;- adult_data_test
+adult_data_test_clean$isNA &lt;- apply(adult_data_test_clean,1,function(x) any(x==&quot;?&quot;)) #find the examples with missing values (have `?`) and marked them 
+adult_data_test_clean &lt;- adult_data_test_clean[-which(adult_data_test_clean$isNA==TRUE),] #eliminate the examples that were marked 
+summary(adult_data_test_clean)</code></pre>
+<pre><code>       X1             X2                  X3               X4           
+ Min.   :17.00   Length:15060       Min.   :  13492   Length:15060      
+ 1st Qu.:28.00   Class :character   1st Qu.: 116655   Class :character  
+ Median :37.00   Mode  :character   Median : 177955   Mode  :character  
+ Mean   :38.77                      Mean   : 189616                     
+ 3rd Qu.:48.00                      3rd Qu.: 238589                     
+ Max.   :90.00                      Max.   :1490400                     
+       X5             X6                 X7                 X8           
+ Min.   : 1.00   Length:15060       Length:15060       Length:15060      
+ 1st Qu.: 9.00   Class :character   Class :character   Class :character  
+ Median :10.00   Mode  :character   Mode  :character   Mode  :character  
+ Mean   :10.11                                                           
+ 3rd Qu.:13.00                                                           
+ Max.   :16.00                                                           
+      X9                X10                 X11             X12         
+ Length:15060       Length:15060       Min.   :    0   Min.   :   0.00  
+ Class :character   Class :character   1st Qu.:    0   1st Qu.:   0.00  
+ Mode  :character   Mode  :character   Median :    0   Median :   0.00  
+                                       Mean   : 1120   Mean   :  89.04  
+                                       3rd Qu.:    0   3rd Qu.:   0.00  
+                                       Max.   :99999   Max.   :3770.00  
+      X13            X14                 Y                isNA        
+ Min.   : 1.00   Length:15060       Length:15060       Mode :logical  
+ 1st Qu.:40.00   Class :character   Class :character   FALSE:15060    
+ Median :40.00   Mode  :character   Mode  :character                  
+ Mean   :40.95                                                        
+ 3rd Qu.:45.00                                                        
+ Max.   :99.00                                                        </code></pre>
+<p>Once again, the working (testing) data file, namely <code>adult_data_train_test</code> has one extra column and its sample size is now reduced to <span class="math inline">\(15,060\)</span> as anticipated before, which could be checked as follows:</p>
+<pre class="r"><code>ncol(adult_data_test_clean)</code></pre>
+<pre><code>## [1] 16</code></pre>
+<pre class="r"><code>ncol(adult_data_test)</code></pre>
+<pre><code>## [1] 15</code></pre>
+<p>The labels distribution of <span class="math inline">\(y\)</span>’s are as follows</p>
+<ul>
+<li>Probability for the label <span class="math inline">\(&gt;50K\)</span> is 23.93% in the <em>whole (training and testing altogether)</em> dataframe or 24.78% if the unknown values are removed;</li>
+<li>Probability for the label <span class="math inline">\(&gt;50K\)</span> is 24.08% in the <em>training</em> dataframe or 24.89% if the unknown values are removed;</li>
+<li>Probability for the label <span class="math inline">\(&gt;50K\)</span> is 23.62% in the <em>testing</em> dataframe or 24.57% if the unknown values are removed;</li>
+<li>Probability for the label <span class="math inline">\(&lt;=50K\)</span> : 76.07% in the <em>whole (training and testing altogether)</em> dataframe or 75.22% if the unknown values are removed;</li>
+<li>Probability for the label <span class="math inline">\(&lt;=50K\)</span> : 75.92% in the <em>training</em> dataframe or 75.11% if the unknown values are removed;</li>
+<li>Probability for the label <span class="math inline">\(&lt;=50K\)</span> : 76.38% in the <em>testing</em> dataframe or 75.43% if the unknown values are removed.</li>
+</ul>
+<p>One could find these pieces of information for the label <span class="math inline">\(&gt;50K\)</span></p>
+<pre class="r"><code>c((sum(adult_data_train$Y == &#39;&gt;50K&#39;)+sum(adult_data_test$Y == &#39;&gt;50K.&#39;))/(nrow(adult_data_train)+nrow(adult_data_test)),(sum(adult_data_train_clean$Y == &#39;&gt;50K&#39;)+sum(adult_data_test_clean$Y == &#39;&gt;50K.&#39;))/(nrow(adult_data_train_clean)+nrow(adult_data_test_clean))) #whole (training and testing altogether) -- with and without the unknown values</code></pre>
+<pre><code>## [1] 0.2392818 0.2478440</code></pre>
+<pre class="r"><code>c(sum(adult_data_train$Y == &#39;&gt;50K&#39;)/nrow(adult_data_train),sum(adult_data_train_clean$Y == &#39;&gt;50K&#39;)/nrow(adult_data_train_clean))#training the unknown values</code></pre>
+<pre><code>## [1] 0.2408096 0.2489225</code></pre>
+<pre class="r"><code>c(sum(adult_data_test$Y == &#39;&gt;50K.&#39;)/nrow(adult_data_test),sum(adult_data_test_clean$Y == &#39;&gt;50K.&#39;)/nrow(adult_data_test_clean))#testing the unknown values</code></pre>
+<pre><code>## [1] 0.2362263 0.2456839</code></pre>
+<p>by noting that the training data record as <span class="math inline">\(&gt;50K\)</span>, while the training data record as <span class="math inline">\(&gt;50K.\)</span>. Similarly, the label <span class="math inline">\(&lt;=50K\)</span> distribution is given by</p>
+<pre class="r"><code>c((sum(adult_data_train$Y == &#39;&lt;=50K&#39;)+sum(adult_data_test$Y == &#39;&lt;=50K.&#39;))/(nrow(adult_data_train)+nrow(adult_data_test)),(sum(adult_data_train_clean$Y == &#39;&lt;=50K&#39;)+sum(adult_data_test_clean$Y == &#39;&lt;=50K.&#39;))/(nrow(adult_data_train_clean)+nrow(adult_data_test_clean)))#whole (training and testing altogether) the unknown values</code></pre>
+<pre><code>## [1] 0.7607182 0.7521560</code></pre>
+<pre class="r"><code>c(sum(adult_data_train$Y == &#39;&lt;=50K&#39;)/nrow(adult_data_train),sum(adult_data_train_clean$Y == &#39;&lt;=50K&#39;)/nrow(adult_data_train_clean))#training the unknown values</code></pre>
+<pre><code>## [1] 0.7591904 0.7510775</code></pre>
+<pre class="r"><code>c(sum(adult_data_test$Y == &#39;&lt;=50K.&#39;)/nrow(adult_data_test),sum(adult_data_test_clean$Y == &#39;&lt;=50K.&#39;)/nrow(adult_data_test_clean))#testing the unknown values</code></pre>
+<pre><code>## [1] 0.7637737 0.7543161</code></pre>
+<p>These findings are in accordance with the label summary given in Section <a href="#DD">1</a>. These numbers tell us the following:</p>
+<ul>
+<li>Removing the missing values does not change the occurrence of any of the two income labels, i.e. <span class="math inline">\(&gt;50K\)</span> and <span class="math inline">\(&lt;=50K\)</span>;</li>
+<li>The training and testing data show similar label occurrences as in the whole data, and thus the random sampling used to pull out the training data mimics the traits of the population sample – also referred as whole data;</li>
+<li>We do not deal with imbalanced data, i.e. when the occurrence of one label is way bigger/smaller than the other label; otherwise, we would have used some bespoke machine learning algorithms that are not too intuitive.</li>
+</ul>
+<p>In summary, partitioning the data in this way does not raise concerns with respect to the labels <span class="math inline">\(y\)</span>’s, and we next investigate whether the partitioning does have a major effect over the features <span class="math inline">\(\textbf{x}\)</span>’s.</p>
+<p>The features have various continuous and categorical features, and we would like to understand the strength of dependence amongst the features in training and testing data. Therefore, we looked into the continuous features and first create correlation plots for such features; the pictorial representations are provided in Figures <a href="#fig:CorrPlotTrainDataFigs">2.1</a> for the training data and Figure <a href="#fig:CorrPlotTestDataFigs">2.2</a> for the testing data.</p>
+<pre class="r"><code>suppressWarnings(library(corrplot))
+par(mfrow=c(1,2))
+tmp_corr_train_data &lt;- cor(adult_data_train[,c(1,3,5,11,12,13)])
+colnames(tmp_corr_train_data) &lt;- c(&quot;Age&quot;, &quot;Fnlwgt&quot;, &quot;Educ-num&quot;, &quot;Cap-Gain&quot;, &quot;Cap-Loss&quot;, &quot;Hour-week&quot;)
+rownames(tmp_corr_train_data) &lt;- c(&quot;Age&quot;, &quot;Fnlwgt&quot;, &quot;Educ-num&quot;, &quot;Cap-Gain&quot;, &quot;Cap-Loss&quot;, &quot;Hour-week&quot;)
+corrplot(tmp_corr_train_data, method=&quot;circle&quot;, addCoef.col = &quot;red&quot;, tl.col=&quot;black&quot;, tl.srt=45)
+tmp_corr_train_data_clean &lt;- cor(adult_data_train_clean[,c(1,3,5,11,12,13)])
+colnames(tmp_corr_train_data_clean) &lt;- c(&quot;Age&quot;, &quot;Fnlwgt&quot;, &quot;Educ-num&quot;, &quot;Cap-Gain&quot;, &quot;Cap-Loss&quot;, &quot;Hour-week&quot;)
+rownames(tmp_corr_train_data_clean) &lt;- c(&quot;Age&quot;, &quot;Fnlwgt&quot;, &quot;Educ-num&quot;, &quot;Cap-Gain&quot;, &quot;Cap-Loss&quot;, &quot;Hour-week&quot;)
+corrplot(tmp_corr_train_data_clean, method=&quot;circle&quot;,  addCoef.col = &quot;red&quot;, tl.col=&quot;black&quot;, tl.srt=45)</code></pre>
+<div class="figure" style="text-align: center"><span id="fig:CorrPlotTrainDataFigs"></span>
+<img src="EDA_Adult_Data_EDA_files/figure-html/CorrPlotTrainDataFigs-1.png" alt="Correlation matrix for the continuous features of the training data (left) and cleaned training data (right)" width="1152" />
+<p class="caption">
+Figure 2.1: Correlation matrix for the continuous features of the training data (left) and cleaned training data (right)
+</p>
+</div>
+<pre class="r"><code>suppressWarnings(library(corrplot))
+par(mfrow=c(1,2))
+tmp_corr_test_data &lt;- cor(adult_data_test[,c(1,3,5,11,12,13)])
+colnames(tmp_corr_test_data) &lt;- c(&quot;Age&quot;, &quot;Fnlwgt&quot;, &quot;Educ-num&quot;, &quot;Cap-Gain&quot;, &quot;Cap-Loss&quot;, &quot;Hour-week&quot;)
+rownames(tmp_corr_test_data) &lt;- c(&quot;Age&quot;, &quot;Fnlwgt&quot;, &quot;Educ-num&quot;, &quot;Cap-Gain&quot;, &quot;Cap-Loss&quot;, &quot;Hour-week&quot;)
+corrplot(tmp_corr_test_data, method=&quot;circle&quot;,  addCoef.col = &quot;red&quot;, tl.col=&quot;black&quot;, tl.srt=45)
+tmp_corr_test_data_clean &lt;- cor(adult_data_test_clean[,c(1,3,5,11,12,13)])
+colnames(tmp_corr_test_data_clean) &lt;- c(&quot;Age&quot;, &quot;Fnlwgt&quot;, &quot;Educ-num&quot;, &quot;Cap-Gain&quot;, &quot;Cap-Loss&quot;, &quot;Hour-week&quot;)
+rownames(tmp_corr_test_data_clean) &lt;- c(&quot;Age&quot;, &quot;Fnlwgt&quot;, &quot;Educ-num&quot;, &quot;Cap-Gain&quot;, &quot;Cap-Loss&quot;, &quot;Hour-week&quot;)
+corrplot(tmp_corr_test_data_clean, method=&quot;circle&quot;, addCoef.col = &quot;red&quot;, tl.col=&quot;black&quot;, tl.srt=45)</code></pre>
+<div class="figure" style="text-align: center"><span id="fig:CorrPlotTestDataFigs"></span>
+<img src="EDA_Adult_Data_EDA_files/figure-html/CorrPlotTestDataFigs-1.png" alt="Correlation matrix for the continuous features of the testing data (left) and cleaned testing data (right)" width="1056" />
+<p class="caption">
+Figure 2.2: Correlation matrix for the continuous features of the testing data (left) and cleaned testing data (right)
+</p>
+</div>
+<p>It is clear from Figures <a href="#fig:CorrPlotTrainDataFigs">2.1</a> and <a href="#fig:CorrPlotTestDataFigs">2.2</a> that the current data partitioning leads to similar Spearman’s linear correlations in all four datasets, which tells us that the random sampling – when we selected the split between the training and testing data – keeps similar data structures in both training and testing data, and the eliminate the missing values does not have on impact either. In addition, we observe that all correlations are relatively small, i.e. around 0, which means that there is no clear evidence of redundant features that would need to be eliminated in case of high correlation. The highest correlation is observed for the pair of features given by <em>Educ-num vs Cap-Gain</em> and <em>Educ-num vs Hour-week</em>, which are still small.</p>
+<p>Correlations that involve non-continuous features are – theoretically speaking – not statistically significant, and therefore not reliable. Thus, we avoid trying to understand such correlations for the other eight categorical features, i.e. <em>Workclass</em>, <em>Education</em>, <em>Marital-status</em>, <em>Occupation</em>, <em>Relationship</em>, <em>Race</em>, <em>Sex</em> and <em>Native-country</em>.</p>
+<p>Moreover, <em>Workclass</em>, <em>Education</em>, <em>Occupation</em>, <em>Relationship</em> and <em>Native-country</em> are categorical features with subjective measurements that are not easy to interpret, and we leave them aside; the other three features, namely <em>Marital-status</em>, <em>Race</em> and <em>Sex</em>, are very sensitive features that are informative and interpretable in the people analytics context, where making inferences about the future salary of an individual should not exhibit various gender/racial/social biases.</p>
+<p>Let us look at the three more interpretable features and see whether the cleaned training and testing data differ with respect to the relative frequencies. The results are given below and it is remarkable how similar the training and testing data in regards with each of these four features, which gives even more evidence that the random sampling error is not significant.</p>
+<pre class="r"><code>tmp &lt;- as.data.frame(table(adult_data_train_clean$X6)/nrow(adult_data_train_clean))
+#the code is more complex than it should be since the output of the R function `table` has a format that does not allow to change its columns&#39; names, so we need to make this unusual coding 
+colnames(tmp) &lt;- c(&quot;Marital-status: Training Data&quot;,&quot;Percentage&quot;)
+kable(tmp,digits = 4)</code></pre>
+<table>
+<thead>
+<tr class="header">
+<th align="left">Marital-status: Training Data</th>
+<th align="right">Percentage</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">Divorced</td>
+<td align="right">0.1397</td>
+</tr>
+<tr class="even">
+<td align="left">Married-AF-spouse</td>
+<td align="right">0.0007</td>
+</tr>
+<tr class="odd">
+<td align="left">Married-civ-spouse</td>
+<td align="right">0.4663</td>
+</tr>
+<tr class="even">
+<td align="left">Married-spouse-absent</td>
+<td align="right">0.0123</td>
+</tr>
+<tr class="odd">
+<td align="left">Never-married</td>
+<td align="right">0.3225</td>
+</tr>
+<tr class="even">
+<td align="left">Separated</td>
+<td align="right">0.0311</td>
+</tr>
+<tr class="odd">
+<td align="left">Widowed</td>
+<td align="right">0.0274</td>
+</tr>
+</tbody>
+</table>
+<pre class="r"><code>tmp &lt;- as.data.frame(table(adult_data_test_clean$X6)/nrow(adult_data_test_clean))
+colnames(tmp) &lt;- c(&quot;Marital-status: Testing Data&quot;,&quot;Percentage&quot;)
+kable(tmp,digits = 4)</code></pre>
+<table>
+<thead>
+<tr class="header">
+<th align="left">Marital-status: Testing Data</th>
+<th align="right">Percentage</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">Divorced</td>
+<td align="right">0.1383</td>
+</tr>
+<tr class="even">
+<td align="left">Married-AF-spouse</td>
+<td align="right">0.0007</td>
+</tr>
+<tr class="odd">
+<td align="left">Married-civ-spouse</td>
+<td align="right">0.4641</td>
+</tr>
+<tr class="even">
+<td align="left">Married-spouse-absent</td>
+<td align="right">0.0121</td>
+</tr>
+<tr class="odd">
+<td align="left">Never-married</td>
+<td align="right">0.3235</td>
+</tr>
+<tr class="even">
+<td align="left">Separated</td>
+<td align="right">0.0313</td>
+</tr>
+<tr class="odd">
+<td align="left">Widowed</td>
+<td align="right">0.0299</td>
+</tr>
+</tbody>
+</table>
+<pre class="r"><code>tmp &lt;- as.data.frame(table(adult_data_train_clean$X8)/nrow(adult_data_train_clean))
+colnames(tmp) &lt;- c(&quot;Relationship: Training Data&quot;,&quot;Percentage&quot;)
+kable(tmp,digits = 4)</code></pre>
+<table>
+<thead>
+<tr class="header">
+<th align="left">Relationship: Training Data</th>
+<th align="right">Percentage</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">Husband</td>
+<td align="right">0.4132</td>
+</tr>
+<tr class="even">
+<td align="left">Not-in-family</td>
+<td align="right">0.2562</td>
+</tr>
+<tr class="odd">
+<td align="left">Other-relative</td>
+<td align="right">0.0295</td>
+</tr>
+<tr class="even">
+<td align="left">Own-child</td>
+<td align="right">0.1481</td>
+</tr>
+<tr class="odd">
+<td align="left">Unmarried</td>
+<td align="right">0.1065</td>
+</tr>
+<tr class="even">
+<td align="left">Wife</td>
+<td align="right">0.0466</td>
+</tr>
+</tbody>
+</table>
+<pre class="r"><code>tmp &lt;- as.data.frame(table(adult_data_test_clean$X8)/nrow(adult_data_test_clean))
+colnames(tmp) &lt;- c(&quot;Relationship: Testing Data&quot;,&quot;Percentage&quot;)
+kable(tmp,digits = 4)</code></pre>
+<table>
+<thead>
+<tr class="header">
+<th align="left">Relationship: Testing Data</th>
+<th align="right">Percentage</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">Husband</td>
+<td align="right">0.4119</td>
+</tr>
+<tr class="even">
+<td align="left">Not-in-family</td>
+<td align="right">0.2640</td>
+</tr>
+<tr class="odd">
+<td align="left">Other-relative</td>
+<td align="right">0.0305</td>
+</tr>
+<tr class="even">
+<td align="left">Own-child</td>
+<td align="right">0.1434</td>
+</tr>
+<tr class="odd">
+<td align="left">Unmarried</td>
+<td align="right">0.1046</td>
+</tr>
+<tr class="even">
+<td align="left">Wife</td>
+<td align="right">0.0455</td>
+</tr>
+</tbody>
+</table>
+<pre class="r"><code>tmp &lt;- as.data.frame(table(adult_data_train_clean$X9)/nrow(adult_data_train_clean))
+colnames(tmp) &lt;- c(&quot;Race: Training Data&quot;,&quot;Percentage&quot;)
+kable(tmp,digits = 4)</code></pre>
+<table>
+<thead>
+<tr class="header">
+<th align="left">Race: Training Data</th>
+<th align="right">Percentage</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">Amer-Indian-Eskimo</td>
+<td align="right">0.0095</td>
+</tr>
+<tr class="even">
+<td align="left">Asian-Pac-Islander</td>
+<td align="right">0.0297</td>
+</tr>
+<tr class="odd">
+<td align="left">Black</td>
+<td align="right">0.0934</td>
+</tr>
+<tr class="even">
+<td align="left">Other</td>
+<td align="right">0.0077</td>
+</tr>
+<tr class="odd">
+<td align="left">White</td>
+<td align="right">0.8598</td>
+</tr>
+</tbody>
+</table>
+<pre class="r"><code>tmp &lt;- as.data.frame(table(adult_data_test_clean$X9)/nrow(adult_data_test_clean))
+colnames(tmp) &lt;- c(&quot;Race: Testing Data&quot;,&quot;Percentage&quot;)
+kable(tmp,digits = 4)</code></pre>
+<table>
+<thead>
+<tr class="header">
+<th align="left">Race: Testing Data</th>
+<th align="right">Percentage</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">Amer-Indian-Eskimo</td>
+<td align="right">0.0099</td>
+</tr>
+<tr class="even">
+<td align="left">Asian-Pac-Islander</td>
+<td align="right">0.0271</td>
+</tr>
+<tr class="odd">
+<td align="left">Black</td>
+<td align="right">0.0937</td>
+</tr>
+<tr class="even">
+<td align="left">Other</td>
+<td align="right">0.0081</td>
+</tr>
+<tr class="odd">
+<td align="left">White</td>
+<td align="right">0.8612</td>
+</tr>
+</tbody>
+</table>
+<pre class="r"><code>tmp &lt;- as.data.frame(table(adult_data_train_clean$X10)/nrow(adult_data_train_clean))
+colnames(tmp) &lt;- c(&quot;Sex: Training Data&quot;,&quot;Percentage&quot;)
+kable(tmp,digits = 4)</code></pre>
+<table>
+<thead>
+<tr class="header">
+<th align="left">Sex: Training Data</th>
+<th align="right">Percentage</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">Female</td>
+<td align="right">0.3243</td>
+</tr>
+<tr class="even">
+<td align="left">Male</td>
+<td align="right">0.6757</td>
+</tr>
+</tbody>
+</table>
+<pre class="r"><code>tmp &lt;- as.data.frame(table(adult_data_test_clean$X10)/nrow(adult_data_test_clean))
+colnames(tmp) &lt;- c(&quot;Sex: Testing Data&quot;,&quot;Percentage&quot;)
+kable(tmp,digits = 4)</code></pre>
+<table>
+<thead>
+<tr class="header">
+<th align="left">Sex: Testing Data</th>
+<th align="right">Percentage</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">Female</td>
+<td align="right">0.3262</td>
+</tr>
+<tr class="even">
+<td align="left">Male</td>
+<td align="right">0.6738</td>
+</tr>
+</tbody>
+</table>
+<p>We now repeat the exercise from Figures <a href="#fig:CorrPlotTrainDataFigs">2.1</a> and <a href="#fig:CorrPlotTestDataFigs">2.2</a>, and evaluate the strength of dependence amongst the features in the cleaned training and testing data, by restricting the calculation to age gender. The summary correaltion results are displayed in Figures <a href="#fig:CorrPlotTrainDataSexFigs">2.3</a> and <a href="#fig:CorrPlotTestDataSexFigs">2.4</a>, where we again notice similar results irrespective of the value of this very sensitive feature; it should be noticed that <code>Female</code> tend to show a more reduced correlation than <code>Male</code> and the overall sample, i.e. <code>Male</code> and <code>Female</code> altogether, for the pair of features <em>Educ-num vs Cap-Gain</em>.</p>
+<pre class="r"><code>suppressWarnings(library(corrplot))
+par(mfrow=c(1,3))
+tmp_corr_train_data_clean_fem &lt;- cor(adult_data_train_clean[adult_data_train_clean$X10 == &quot;Female&quot;,c(1,3,5,11,12,13)])
+colnames(tmp_corr_train_data_clean_fem) &lt;- c(&quot;Age&quot;, &quot;Fnlwgt&quot;, &quot;Educ-num&quot;, &quot;Cap-Gain&quot;, &quot;Capital-Loss&quot;, &quot;Hour-week&quot;)
+rownames(tmp_corr_train_data_clean_fem) &lt;- c(&quot;Age&quot;, &quot;Fnlwgt&quot;, &quot;Educ-num&quot;, &quot;Cap-Gain&quot;, &quot;Capital-Loss&quot;, &quot;Hour-week&quot;)
+corrplot(tmp_corr_train_data_clean_fem, method=&quot;circle&quot;,  addCoef.col = &quot;red&quot;, tl.col=&quot;black&quot;, tl.srt=45)
+tmp_corr_train_data_clean_male &lt;- cor(adult_data_train_clean[adult_data_train_clean$X10 == &quot;Male&quot;,c(1,3,5,11,12,13)])
+colnames(tmp_corr_train_data_clean_male) &lt;- c(&quot;Age&quot;, &quot;Fnlwgt&quot;, &quot;Educ-num&quot;, &quot;Cap-Gain&quot;, &quot;Capital-Loss&quot;, &quot;Hour-week&quot;)
+rownames(tmp_corr_train_data_clean_male) &lt;- c(&quot;Age&quot;, &quot;Fnlwgt&quot;, &quot;Educ-num&quot;, &quot;Cap-Gain&quot;, &quot;Capital-Loss&quot;, &quot;Hour-week&quot;)
+corrplot(tmp_corr_train_data_clean_male, method=&quot;circle&quot;,  addCoef.col = &quot;red&quot;, tl.col=&quot;black&quot;, tl.srt=45)
+tmp_corr_train_data_clean &lt;- cor(adult_data_train_clean[,c(1,3,5,11,12,13)])
+colnames(tmp_corr_train_data_clean) &lt;- c(&quot;Age&quot;, &quot;Fnlwgt&quot;, &quot;Educ-num&quot;, &quot;Cap-Gain&quot;, &quot;Capital-Loss&quot;, &quot;Hour-week&quot;)
+rownames(tmp_corr_train_data_clean) &lt;- c(&quot;Age&quot;, &quot;Fnlwgt&quot;, &quot;Educ-num&quot;, &quot;Cap-Gain&quot;, &quot;Capital-Loss&quot;, &quot;Hour-week&quot;)
+corrplot(tmp_corr_train_data_clean, method=&quot;circle&quot;,  addCoef.col = &quot;red&quot;, tl.col=&quot;black&quot;, tl.srt=45)</code></pre>
+<div class="figure" style="text-align: center"><span id="fig:CorrPlotTrainDataSexFigs"></span>
+<img src="EDA_Adult_Data_EDA_files/figure-html/CorrPlotTrainDataSexFigs-1.png" alt="Correlation matrix for the continuous features of the cleaned training data: &quot;Female&quot; only (left), &quot;Male&quot; only (middle) and All genders (right)" width="1152" />
+<p class="caption">
+Figure 2.3: Correlation matrix for the continuous features of the cleaned training data: “Female” only (left), “Male” only (middle) and All genders (right)
+</p>
+</div>
+<pre class="r"><code>suppressWarnings(library(corrplot))
+par(mfrow=c(1,3))
+tmp_corr_test_data_clean_fem &lt;- cor(adult_data_test_clean[adult_data_test_clean$X10 == &quot;Female&quot;,c(1,3,5,11,12,13)])
+colnames(tmp_corr_test_data_clean_fem) &lt;- c(&quot;Age&quot;, &quot;Fnlwgt&quot;, &quot;Educ-num&quot;, &quot;Cap-Gain&quot;, &quot;Cap-Loss&quot;, &quot;Hour-week&quot;)
+rownames(tmp_corr_test_data_clean_fem) &lt;- c(&quot;Age&quot;, &quot;Fnlwgt&quot;, &quot;Educ-num&quot;, &quot;Cap-Gain&quot;, &quot;Cap-Loss&quot;, &quot;Hour-week&quot;)
+corrplot(tmp_corr_test_data_clean_fem, method=&quot;circle&quot;,  addCoef.col = &quot;red&quot;, tl.col=&quot;black&quot;, tl.srt=45)
+tmp_corr_test_data_clean_male &lt;- cor(adult_data_test_clean[adult_data_test_clean$X10 == &quot;Male&quot;,c(1,3,5,11,12,13)])
+colnames(tmp_corr_test_data_clean_male) &lt;- c(&quot;Age&quot;, &quot;Fnlwgt&quot;, &quot;Educ-num&quot;, &quot;Cap-Gain&quot;, &quot;Cap-Loss&quot;, &quot;Hour-week&quot;)
+rownames(tmp_corr_test_data_clean_male) &lt;- c(&quot;Age&quot;, &quot;Fnlwgt&quot;, &quot;Educ-num&quot;, &quot;Cap-Gain&quot;, &quot;Cap-Loss&quot;, &quot;Hour-week&quot;)
+corrplot(tmp_corr_test_data_clean_male, method=&quot;circle&quot;,  addCoef.col = &quot;red&quot;, tl.col=&quot;black&quot;, tl.srt=45)
+tmp_corr_test_data_clean &lt;- cor(adult_data_test_clean[,c(1,3,5,11,12,13)])
+colnames(tmp_corr_test_data_clean) &lt;- c(&quot;Age&quot;, &quot;Fnlwgt&quot;, &quot;Educ-num&quot;, &quot;Cap-Gain&quot;, &quot;Cap-Loss&quot;, &quot;Hour-week&quot;)
+rownames(tmp_corr_test_data_clean) &lt;- c(&quot;Age&quot;, &quot;Fnlwgt&quot;, &quot;Educ-num&quot;, &quot;Cap-Gain&quot;, &quot;Cap-Loss&quot;, &quot;Hour-week&quot;)
+corrplot(tmp_corr_test_data_clean, method=&quot;circle&quot;,  addCoef.col = &quot;red&quot;, tl.col=&quot;black&quot;, tl.srt=45)</code></pre>
+<div class="figure" style="text-align: center"><span id="fig:CorrPlotTestDataSexFigs"></span>
+<img src="EDA_Adult_Data_EDA_files/figure-html/CorrPlottestDataSexFigs-1.png" alt="Correlation matrix for the continuous features of the cleaned testing data: &quot;Female&quot; only (left), &quot;Male&quot; only (middle) and All genders (right)" width="1152" />
+<p class="caption">
+Figure 2.4: Correlation matrix for the continuous features of the cleaned testing data: “Female” only (left), “Male” only (middle) and All genders (right)
+</p>
+</div>
+<p>We now examine the possible effects of the <em>Marital-status</em> feature over the training and testing datasets, but mainly for the three dominant statuses: <code>Divorced</code>, <code>Married-civ-spouse</code> and <code>Never-married</code>. The Spearman’s correlation coefficients are shown in Figures <a href="#fig:CorrPlotTrainDataMSFigs">2.5</a> and <a href="#fig:CorrPlotTestDataMSFigs">2.6</a>, where we notice no significant differences in between the training and testing samples for each marital status. There is some variability for the <em>Educ-num vs Cap-Gain</em>, but the most visible variation is exhibited by the pair of features <em>Age vs Hour-week</em> that shows a quite different correlation for <code>Never-married</code> employees; while this could be a personal choice, we should keep this in mind.</p>
+<pre class="r"><code>suppressWarnings(library(corrplot))
+par(mfrow=c(2,2))
+tmp_corr_train_data_clean_div &lt;- cor(adult_data_train_clean[adult_data_train_clean$X6 == &quot;Divorced&quot;,c(1,3,5,11,12,13)])
+colnames(tmp_corr_train_data_clean_div) &lt;- c(&quot;Age&quot;, &quot;Fnlwgt&quot;, &quot;Educ-num&quot;, &quot;Cap-Gain&quot;, &quot;Cap-Loss&quot;, &quot;Hour-week&quot;)
+rownames(tmp_corr_train_data_clean_div) &lt;- c(&quot;Age&quot;, &quot;Fnlwgt&quot;, &quot;Educ-num&quot;, &quot;Cap-Gain&quot;, &quot;Cap-Loss&quot;, &quot;Hour-week&quot;)
+corrplot(tmp_corr_train_data_clean_div, method=&quot;circle&quot;,  addCoef.col = &quot;red&quot;, tl.col=&quot;black&quot;, tl.srt=45)
+tmp_corr_train_data_clean_mcs &lt;- cor(adult_data_train_clean[adult_data_train_clean$X6 == &quot;Married-civ-spouse&quot;,c(1,3,5,11,12,13)])
+colnames(tmp_corr_train_data_clean_mcs) &lt;- c(&quot;Age&quot;, &quot;Fnlwgt&quot;, &quot;Educ-num&quot;, &quot;Cap-Gain&quot;, &quot;Cap-Loss&quot;, &quot;Hour-week&quot;)
+rownames(tmp_corr_train_data_clean_mcs) &lt;- c(&quot;Age&quot;, &quot;Fnlwgt&quot;, &quot;Educ-num&quot;, &quot;Cap-Gain&quot;, &quot;Cap-Loss&quot;, &quot;Hour-week&quot;)
+corrplot(tmp_corr_train_data_clean_mcs, method=&quot;circle&quot;,  addCoef.col = &quot;red&quot;, tl.col=&quot;black&quot;, tl.srt=45)
+tmp_corr_train_data_clean_nm &lt;- cor(adult_data_train_clean[adult_data_train_clean$X6 == &quot;Never-married&quot;,c(1,3,5,11,12,13)])
+colnames(tmp_corr_train_data_clean_nm) &lt;- c(&quot;Age&quot;, &quot;Fnlwgt&quot;, &quot;Educ-num&quot;, &quot;Cap-Gain&quot;, &quot;Cap-Loss&quot;, &quot;Hour-week&quot;)
+rownames(tmp_corr_train_data_clean_nm) &lt;- c(&quot;Age&quot;, &quot;Fnlwgt&quot;, &quot;Educ-num&quot;, &quot;Cap-Gain&quot;, &quot;Cap-Loss&quot;, &quot;Hour-week&quot;)
+corrplot(tmp_corr_train_data_clean_nm, method=&quot;circle&quot;,  addCoef.col = &quot;red&quot;, tl.col=&quot;black&quot;, tl.srt=45)
+tmp_corr_train_data_clean &lt;- cor(adult_data_train_clean[,c(1,3,5,11,12,13)])
+colnames(tmp_corr_train_data_clean) &lt;- c(&quot;Age&quot;, &quot;Fnlwgt&quot;, &quot;Educ-num&quot;, &quot;Cap-Gain&quot;, &quot;Cap-Loss&quot;, &quot;Hour-week&quot;)
+rownames(tmp_corr_train_data_clean) &lt;- c(&quot;Age&quot;, &quot;Fnlwgt&quot;, &quot;Educ-num&quot;, &quot;Cap-Gain&quot;, &quot;Cap-Loss&quot;, &quot;Hour-week&quot;)
+corrplot(tmp_corr_train_data_clean, method=&quot;circle&quot;,  addCoef.col = &quot;red&quot;, tl.col=&quot;black&quot;, tl.srt=45)</code></pre>
+<div class="figure" style="text-align: center"><span id="fig:CorrPlotTrainDataMSFigs"></span>
+<img src="EDA_Adult_Data_EDA_files/figure-html/CorrPlotTrainDataMSFigs-1.png" alt="Correlation matrix for the continuous features of the cleaned training data: &quot;Divorced&quot; only (upper left), &quot;Married-civ-spouse&quot; only (upper right), &quot;Never-married&quot; (lower left) and All statuses (lower right)" width="1152" />
+<p class="caption">
+Figure 2.5: Correlation matrix for the continuous features of the cleaned training data: “Divorced” only (upper left), “Married-civ-spouse” only (upper right), “Never-married” (lower left) and All statuses (lower right)
+</p>
+</div>
+<pre class="r"><code>suppressWarnings(library(corrplot))
+par(mfrow=c(2,2))
+tmp_corr_test_data_clean_div &lt;- cor(adult_data_test_clean[adult_data_test_clean$X6 == &quot;Divorced&quot;,c(1,3,5,11,12,13)])
+colnames(tmp_corr_test_data_clean_div) &lt;- c(&quot;Age&quot;, &quot;Fnlwgt&quot;, &quot;Educ-num&quot;, &quot;Cap-Gain&quot;, &quot;Cap-Loss&quot;, &quot;Hour-week&quot;)
+rownames(tmp_corr_test_data_clean_div) &lt;- c(&quot;Age&quot;, &quot;Fnlwgt&quot;, &quot;Educ-num&quot;, &quot;Cap-Gain&quot;, &quot;Cap-Loss&quot;, &quot;Hour-week&quot;)
+corrplot(tmp_corr_test_data_clean_div, method=&quot;circle&quot;,  addCoef.col = &quot;red&quot;, tl.col=&quot;black&quot;, tl.srt=45)
+tmp_corr_test_data_clean_mcs &lt;- cor(adult_data_test_clean[adult_data_test_clean$X6 == &quot;Married-civ-spouse&quot;,c(1,3,5,11,12,13)])
+colnames(tmp_corr_test_data_clean_mcs) &lt;- c(&quot;Age&quot;, &quot;Fnlwgt&quot;, &quot;Educ-num&quot;, &quot;Cap-Gain&quot;, &quot;Cap-Loss&quot;, &quot;Hour-week&quot;)
+rownames(tmp_corr_test_data_clean_mcs) &lt;- c(&quot;Age&quot;, &quot;Fnlwgt&quot;, &quot;Educ-num&quot;, &quot;Cap-Gain&quot;, &quot;Cap-Loss&quot;, &quot;Hour-week&quot;)
+corrplot(tmp_corr_test_data_clean_mcs, method=&quot;circle&quot;,  addCoef.col = &quot;red&quot;, tl.col=&quot;black&quot;, tl.srt=45)
+tmp_corr_test_data_clean_nm &lt;- cor(adult_data_test_clean[adult_data_test_clean$X6 == &quot;Never-married&quot;,c(1,3,5,11,12,13)])
+colnames(tmp_corr_test_data_clean_nm) &lt;- c(&quot;Age&quot;, &quot;Fnlwgt&quot;, &quot;Educ-num&quot;, &quot;Cap-Gain&quot;, &quot;Cap-Loss&quot;, &quot;Hour-week&quot;)
+rownames(tmp_corr_test_data_clean_nm) &lt;- c(&quot;Age&quot;, &quot;Fnlwgt&quot;, &quot;Educ-num&quot;, &quot;Cap-Gain&quot;, &quot;Cap-Loss&quot;, &quot;Hour-week&quot;)
+corrplot(tmp_corr_test_data_clean_nm, method=&quot;circle&quot;,  addCoef.col = &quot;red&quot;, tl.col=&quot;black&quot;, tl.srt=45)
+tmp_corr_test_data_clean &lt;- cor(adult_data_test_clean[,c(1,3,5,11,12,13)])
+colnames(tmp_corr_test_data_clean) &lt;- c(&quot;Age&quot;, &quot;Fnlwgt&quot;, &quot;Educ-num&quot;, &quot;Cap-Gain&quot;, &quot;Cap-Loss&quot;, &quot;Hour-week&quot;)
+rownames(tmp_corr_test_data_clean) &lt;- c(&quot;Age&quot;, &quot;Fnlwgt&quot;, &quot;Educ-num&quot;, &quot;Cap-Gain&quot;, &quot;Cap-Loss&quot;, &quot;Hour-week&quot;)
+corrplot(tmp_corr_test_data_clean, method=&quot;circle&quot;,  addCoef.col = &quot;red&quot;, tl.col=&quot;black&quot;, tl.srt=45)</code></pre>
+<div class="figure" style="text-align: center"><span id="fig:CorrPlotTestDataMSFigs"></span>
+<img src="EDA_Adult_Data_EDA_files/figure-html/CorrPlotTestDataMSFigs-1.png" alt="Correlation matrix for the continuous features of the cleaned testing data: &quot;Divorced&quot; only (upper left), &quot;Married-civ-spouse&quot; only (upper right), &quot;Never-married&quot; (lower left) and All statuses (lower right)" width="1152" />
+<p class="caption">
+Figure 2.6: Correlation matrix for the continuous features of the cleaned testing data: “Divorced” only (upper left), “Married-civ-spouse” only (upper right), “Never-married” (lower left) and All statuses (lower right)
+</p>
+</div>
+<p>We now examine the possible effects of the <em>Race</em> feature over the training and testing datasets, but mainly for the two dominant racial statuses: <code>Black</code> and <code>White</code>. The Spearman’s correlation coefficients are shown in Figures <a href="#fig:CorrPlotTrainDataRaceFigs">2.7</a> and <a href="#fig:CorrPlotTestDataRaceFigs">2.8</a>, where we notice no significant differences in between the training and testing samples for the two racial statuses. There is some variability for the <em>Educ-num vs Cap-Gain</em> in between <code>Black</code> and <code>White</code> subsamples, but it is interesting to observe a quite big difference in the <code>Black</code> and <code>White</code> <em>Age vs Educ-num</em> correlation; the <code>Black</code> employees seem to be better educated for younger employees, which could be explained by an increased number of students – with this racial status – to US higher education after 1980. This concludes the section, but we should keep in mind that the <em>Race</em> feature is the most imbalanced one with an overwhelming percentage of <code>White</code> employees in the dataset.</p>
+<pre class="r"><code>suppressWarnings(library(corrplot))
+par(mfrow=c(1,3))
+tmp_corr_train_data_clean_black &lt;- cor(adult_data_train_clean[adult_data_train_clean$X9 == &quot;Black&quot;,c(1,3,5,11,12,13)])
+colnames(tmp_corr_train_data_clean_black) &lt;- c(&quot;Age&quot;, &quot;Fnlwgt&quot;, &quot;Educ-num&quot;, &quot;Cap-Gain&quot;, &quot;Cap-Loss&quot;, &quot;Hour-week&quot;)
+rownames(tmp_corr_train_data_clean_black) &lt;- c(&quot;Age&quot;, &quot;Fnlwgt&quot;, &quot;Educ-num&quot;, &quot;Cap-Gain&quot;, &quot;Cap-Loss&quot;, &quot;Hour-week&quot;)
+corrplot(tmp_corr_train_data_clean_black, method=&quot;circle&quot;,  addCoef.col = &quot;red&quot;, tl.col=&quot;black&quot;, tl.srt=45)
+tmp_corr_train_data_clean_white &lt;- cor(adult_data_train_clean[adult_data_train_clean$X9 == &quot;White&quot;,c(1,3,5,11,12,13)])
+colnames(tmp_corr_train_data_clean_white) &lt;- c(&quot;Age&quot;, &quot;Fnlwgt&quot;, &quot;Educ-num&quot;, &quot;Cap-Gain&quot;, &quot;Cap-Loss&quot;, &quot;Hour-week&quot;)
+rownames(tmp_corr_train_data_clean_white) &lt;- c(&quot;Age&quot;, &quot;Fnlwgt&quot;, &quot;Educ-num&quot;, &quot;Cap-Gain&quot;, &quot;Cap-Loss&quot;, &quot;Hour-week&quot;)
+corrplot(tmp_corr_train_data_clean_white, method=&quot;circle&quot;,  addCoef.col = &quot;red&quot;, tl.col=&quot;black&quot;, tl.srt=45)
+tmp_corr_train_data_clean &lt;- cor(adult_data_train_clean[,c(1,3,5,11,12,13)])
+colnames(tmp_corr_train_data_clean) &lt;- c(&quot;Age&quot;, &quot;Fnlwgt&quot;, &quot;Educ-num&quot;, &quot;Cap-Gain&quot;, &quot;Cap-Loss&quot;, &quot;Hour-week&quot;)
+rownames(tmp_corr_train_data_clean) &lt;- c(&quot;Age&quot;, &quot;Fnlwgt&quot;, &quot;Educ-num&quot;, &quot;Cap-Gain&quot;, &quot;Cap-Loss&quot;, &quot;Hour-week&quot;)
+corrplot(tmp_corr_train_data_clean, method=&quot;circle&quot;,  addCoef.col = &quot;red&quot;, tl.col=&quot;black&quot;, tl.srt=45)</code></pre>
+<div class="figure" style="text-align: center"><span id="fig:CorrPlotTrainDataRaceFigs"></span>
+<img src="EDA_Adult_Data_EDA_files/figure-html/CorrPlotTrainDataRaceFigs-1.png" alt="Correlation matrix for the continuous features of the cleaned training data: &quot;Black&quot; only (left), &quot;White&quot; only (middle) and All racial statuses (right)" width="1152" />
+<p class="caption">
+Figure 2.7: Correlation matrix for the continuous features of the cleaned training data: “Black” only (left), “White” only (middle) and All racial statuses (right)
+</p>
+</div>
+<pre class="r"><code>suppressWarnings(library(corrplot))
+par(mfrow=c(1,3))
+tmp_corr_test_data_clean_black &lt;- cor(adult_data_test_clean[adult_data_test_clean$X9 == &quot;Black&quot;,c(1,3,5,11,12,13)])
+colnames(tmp_corr_test_data_clean_black) &lt;- c(&quot;Age&quot;, &quot;Fnlwgt&quot;, &quot;Educ-num&quot;, &quot;Cap-Gain&quot;, &quot;Cap-Loss&quot;, &quot;Hour-week&quot;)
+rownames(tmp_corr_test_data_clean_black) &lt;- c(&quot;Age&quot;, &quot;Fnlwgt&quot;, &quot;Educ-num&quot;, &quot;Cap-Gain&quot;, &quot;Cap-Loss&quot;, &quot;Hour-week&quot;)
+corrplot(tmp_corr_test_data_clean_black, method=&quot;circle&quot;,  addCoef.col = &quot;red&quot;, tl.col=&quot;black&quot;, tl.srt=45)
+tmp_corr_test_data_clean_white &lt;- cor(adult_data_test_clean[adult_data_test_clean$X9 == &quot;White&quot;,c(1,3,5,11,12,13)])
+colnames(tmp_corr_test_data_clean_white) &lt;- c(&quot;Age&quot;, &quot;Fnlwgt&quot;, &quot;Educ-num&quot;, &quot;Cap-Gain&quot;, &quot;Cap-Loss&quot;, &quot;Hour-week&quot;)
+rownames(tmp_corr_test_data_clean_white) &lt;- c(&quot;Age&quot;, &quot;Fnlwgt&quot;, &quot;Educ-num&quot;, &quot;Cap-Gain&quot;, &quot;Cap-Loss&quot;, &quot;Hour-week&quot;)
+corrplot(tmp_corr_test_data_clean_white, method=&quot;circle&quot;,  addCoef.col = &quot;red&quot;, tl.col=&quot;black&quot;, tl.srt=45)
+tmp_corr_test_data_clean &lt;- cor(adult_data_test_clean[,c(1,3,5,11,12,13)])
+colnames(tmp_corr_test_data_clean) &lt;- c(&quot;Age&quot;, &quot;Fnlwgt&quot;, &quot;Educ-num&quot;, &quot;Cap-Gain&quot;, &quot;Cap-Loss&quot;, &quot;Hour-week&quot;)
+rownames(tmp_corr_test_data_clean) &lt;- c(&quot;Age&quot;, &quot;Fnlwgt&quot;, &quot;Educ-num&quot;, &quot;Cap-Gain&quot;, &quot;Cap-Loss&quot;, &quot;Hour-week&quot;)
+corrplot(tmp_corr_test_data_clean, method=&quot;circle&quot;,  addCoef.col = &quot;red&quot;, tl.col=&quot;black&quot;, tl.srt=45)</code></pre>
+<div class="figure" style="text-align: center"><span id="fig:CorrPlotTestDataRaceFigs"></span>
+<img src="EDA_Adult_Data_EDA_files/figure-html/CorrPlotTestDataRaceFigs-1.png" alt="Correlation matrix for the continuous features of the cleaned testing data: &quot;Black&quot; only (left), &quot;White&quot; only (middle) and All racial statuses (right)" width="1152" />
+<p class="caption">
+Figure 2.8: Correlation matrix for the continuous features of the cleaned testing data: “Black” only (left), “White” only (middle) and All racial statuses (right)
+</p>
+</div>
+</div>
+<div id="EDA:QualDE" class="section level2">
+<h2><span class="header-section-number">2.2</span> Qualitative Data Explorations</h2>
+<p>Section <a href="#EDA:QuanDE">2.1</a> has shown that our data are homogeneous enough to make extrapolate the inferences run on the testing data, on any other similar data coming form the same population, e.g. the testing data. In real-life applications, machine learning algorithms are based on observable data and therefore, the testing data do not exist. However, machine learning methodologies are tested on various datasets – in order to understand the drawbacks of the algorithm in question – and the common way is to split homogeneous data into training and testing where the models are calibrated on the training data and the algorithm’s performance is evaluated on the testing data so that the end-user could make an informed decision of whether a specific method is appropriate for a given data exploration. Having these in mind, we only make further data explorations on the training data, since Section <a href="#EDA:QuanDE">2.1</a> provides enough evidence to believe that the training and testing data have a similar data structure.</p>
+<p>We now investigate the traits of the training data by looking at some histograms, and we first looked at the six continuous features given as Figure <a href="#fig:HistDataTrainContFigs">2.9</a>.</p>
+<pre class="r"><code>par(mfrow=c(2,3))
+hist(adult_data_test_clean$X1,main=&quot;Age&quot;, xlab=&quot;Age&quot;, border=&quot;red&quot;, col=&quot;green&quot;)
+hist(adult_data_test_clean$X3,main=&quot;Fnlwgt&quot;, xlab=&quot;Fnlwgt&quot;, border=&quot;red&quot;, col=&quot;green&quot;)
+hist(adult_data_test_clean$X5,main=&quot;Educ-num&quot;, xlab=&quot;Educ-num&quot;, border=&quot;red&quot;, col=&quot;green&quot;)
+hist(adult_data_test_clean$X11,main=&quot;Cap-Gain&quot;, xlab=&quot;Cap-Gain&quot;, border=&quot;red&quot;, col=&quot;green&quot;)
+hist(adult_data_test_clean$X12,main=&quot;Cap-Loss&quot;, xlab=&quot;Cap-Loss&quot;, border=&quot;red&quot;, col=&quot;green&quot;)
+hist(adult_data_test_clean$X13,main=&quot;Hour-week&quot;, xlab=&quot;Hour-week&quot;, border=&quot;red&quot;, col=&quot;green&quot;)</code></pre>
+<div class="figure" style="text-align: center"><span id="fig:HistDataTrainContFigs"></span>
+<img src="EDA_Adult_Data_EDA_files/figure-html/HistDataTrainContFigs-1.png" alt="Cleaned training data histograms: &quot;Age&quot; (top left), &quot;Fnlwgt&quot; (top middle), &quot;Educ-num&quot; (top right), &quot;Cap-Gain&quot; (bottom left), &quot;Cap-Loss&quot; (bottom middle) and &quot;Hour-week&quot; (bottom right)" width="1152" />
+<p class="caption">
+Figure 2.9: Cleaned training data histograms: “Age” (top left), “Fnlwgt” (top middle), “Educ-num” (top right), “Cap-Gain” (bottom left), “Cap-Loss” (bottom middle) and “Hour-week” (bottom right)
+</p>
+</div>
+<p>The <code>Age</code>, <code>Fnlwgt</code>, <code>Educ-num</code> and <code>Hour-week</code> features are relatively well-distributed across the possible values, while the <code>Cap-Gain</code> and <code>Cap-Loss</code> features are concentrated on <code>zero</code> values so that these two features do not have the expected behaviour of a continuous variable. Here are the proportion of employees with respective <code>Positive Cap-Gain</code>, <code>Positive Cap-Loss</code> and <code>Positive Cap-Gain and Cap-Loss</code>:</p>
+<pre class="r"><code>c(sum(adult_data_test_clean$X11&gt;0)/nrow(adult_data_test_clean),sum(adult_data_test_clean$X12&gt;0)/nrow(adult_data_test_clean),sum((adult_data_test_clean$X11&gt;0) &amp; (adult_data_test_clean$X12&gt;0))/nrow(adult_data_test_clean))</code></pre>
+<pre><code>## [1] 0.08313413 0.04734396 0.00000000</code></pre>
+<p>This means that one might need to consider removing the <code>Cap-Loss</code> feature from the data analysis, and more importanly, to ensure that any inference is neutral to the value of this feature, which may lead to possible prediction bias. For example, after testing our wealth classifier on the data, we should check whether the classifier makes significant different predictions for employees with <code>Zero Cap-Loss</code> and <code>Positive Cap-Loss</code> if the training algorithm also includes the <code>Cap-Loss</code> feature.</p>
+<p>Further, the histograms for <code>Positive Cap-Gain</code> and <code>Positive Cap-Loss</code> are given as Figure <a href="#fig:HistDataTrainContPosCapFigs">2.10</a>, and show amassed distributed of the two features over the positive spectrum.</p>
+<pre class="r"><code>par(mfrow=c(1,2))
+hist(adult_data_test_clean$X11[adult_data_test_clean$X11&gt;0],main=&quot;Positive Cap-Gain&quot;, xlab=&quot;Cap-Gain&quot;, border=&quot;red&quot;, col=&quot;green&quot;)
+hist(adult_data_test_clean$X12[adult_data_test_clean$X12&gt;0],main=&quot;Positive Cap-Loss&quot;, xlab=&quot;Cap-Loss&quot;, border=&quot;red&quot;, col=&quot;green&quot;)</code></pre>
+<div class="figure" style="text-align: center"><span id="fig:HistDataTrainContPosCapFigs"></span>
+<img src="EDA_Adult_Data_EDA_files/figure-html/HistDataTrainContPosCapFigs-1.png" alt="Cleaned training data histograms: &quot;Positive Cap-Gain&quot; (left) and &quot;Positive Cap-Loss&quot; (right)" width="1152" />
+<p class="caption">
+Figure 2.10: Cleaned training data histograms: “Positive Cap-Gain” (left) and “Positive Cap-Loss” (right)
+</p>
+</div>
+<pre class="r"><code>#hist(adult_data_test_clean$X11[(adult_data_test_clean$X11&gt;0) &amp; (adult_data_test_clean$X12&gt;0)],main=&quot;Cap-Gain&quot;, xlab=&quot;Cap-Gain&quot;, border=&quot;red&quot;, col=&quot;green&quot;) # no employee has positive Cap-Gain and Cap-Loss
+#hist(adult_data_test_clean$X12[(adult_data_test_clean$X11&gt;0) &amp;&amp; adult_data_test_clean$X12&gt;0],main=&quot;Cap-Loss&quot;, xlab=&quot;Cap-Loss&quot;, border=&quot;red&quot;, col=&quot;green&quot;)</code></pre>
+</div>
+</div>
+
+
+
+
+</div>
+
+<script>
+
+// add bootstrap table styles to pandoc tables
+function bootstrapStylePandocTables() {
+  $('tr.header').parent('thead').parent('table').addClass('table table-condensed');
+}
+$(document).ready(function () {
+  bootstrapStylePandocTables();
+});
+
+
+</script>
+
+<!-- tabsets -->
+
+<script>
+$(document).ready(function () {
+  window.buildTabsets("TOC");
+});
+
+$(document).ready(function () {
+  $('.tabset-dropdown > .nav-tabs > li').click(function () {
+    $(this).parent().toggleClass('nav-tabs-open')
+  });
+});
+</script>
+
+<!-- code folding -->
+<script>
+$(document).ready(function () {
+  window.initializeCodeFolding("hide" === "show");
+});
+</script>
+
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>

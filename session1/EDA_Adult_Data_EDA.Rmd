@@ -1,0 +1,375 @@
+---
+title:  "Algorithmic Bias in Action: An Use Case on 'People Analytics`"
+author: "Prof Vali Asimit, Dr Simone Santoni and Dr Salvatore Scognamiglio"
+output:
+  bookdown::html_document2:
+    self_contained: false
+    toc: yes
+    toc_depth: '3'
+    number_sections: yes
+    fig_width: 6
+    fig_height: 4
+    code_folding: hide
+    css: WritingSupportFiles/style.css
+    includes:
+      in_header: WritingSupportFiles/ShowHide.js
+  # bookdown::pdf_book:
+  #   number_sections: yes
+  #   toc: yes
+  #   toc_depth: '3'
+  #   template: [WritingSupportFiles\EWF-latex-ms.tex]
+  #   keep_tex: true
+  #   fig_caption: true
+  #   latex_engine: pdflatex
+bibliography: ["WritingSupportFiles/LDAReferenceC.bib","WritingSupportFiles/articles.bib","WritingSupportFiles/books.bib","WritingSupportFiles/packagesA.bib","WritingSupportFiles/packagesB.bib"]
+biblio-style: WritingSupportFiles\econPeriod
+keywords: "Keywords here"
+date: "`r format(Sys.time(), '%B %d, %Y')`"
+geometry: margin=1in
+fontsize: 12pt
+spacing: onehalf
+---
+
+<!-- ```{r echo = FALSE, child="WritingSupportFiles\\Packages.Rmd", warning=FALSE,message=FALSE} -->
+<!-- ``` -->
+
+```{r echo = FALSE, child='WritingSupportFiles/PdfOutput.Rmd', warning=FALSE,message=FALSE}
+```
+
+```{r echo = FALSE, child='WritingSupportFiles/Glossary.Rmd', warning=FALSE,message=FALSE}
+```
+
+# Data Description {#DD}
+
+The `Adult` dataset contains $48,842$ examples -- or $45,222$ if those examples with unknown values are removed -- of 
+$$(\textbf{x}_i,y_i) \quad \text{with}\; 1\le i \le 48,842 \;\text{or}\; 45,222$$
+where $\textbf{x}_i$ and $y_i$ contain the feature values and label, respectively for the $i^{th}$ example. Note that there are six duplicate and conflicting instances that could be removed as well. The labels $y$'s is a binary variable that explains whether the individual has an income (strictly) greater than $USD50,000$, denoted as $>50K$, or her/his income is not larger than $USD50,000$, denoted as $<=50K$. Within each class, the labels are observed as follows:
+
+* Probability for the label $>50K$  is 23.93\% in the whole dataframe or 24.78% if the unknown values are removed;
+* Probability for the label $<=50K$ is 76.07\% in the whole dataframe or 75.22% if the unknown values are removed.
+
+The feature values $\textbf{x}$'s include information about the following 14 features:
+
+i) *Age* -- continuous variable;
+ii) *Workclass* -- categorical variable with 8 possible values: `Private`, `Self-emp-not-inc`, `Self-emp-inc`, `Federal-gov`, `Local-gov`, `State-gov`, `Without-pay` and `Never-worked`;
+iii) *Fnlwgt* abbreviated from *final weight* -- a composite socio-economic feature that is a continuous variable;
+iv) *Education* -- categorical variable with 16 possible values: `Bachelors`, `Some-college`, `11th`, `HS-grad`, `Prof-school`, `Assoc-acdm`, `Assoc-voc`, `9th`, `7th-8th`, `12th`, `Masters`, `1st-4th`, `10th`, `Doctorate`, `5th-6th`, `Preschool`;
+v) *Education-num* -- continuous variable;
+vi) *Marital-status* -- categorical variable with 7 possible values: `Married-civ-spouse`, `Divorced`, `Never-married`, `Separated`, `Widowed`, `Married-spouse-absent` and `Married-AF-spouse`;
+vii) *Occupation* -- categorical variable with 14 possible values: `Tech-support`, `Craft-repair`, `Other-service`, `Sales`, `Exec-managerial`, `Prof-specialty`, `Handlers-cleaners`, `Machine-op-inspct`, `Adm-clerical`, `Farming-fishing`, `Transport-moving`, `Priv-house-serv`, `Protective-serv` and `Armed-Forces`;
+viii) *Relationship* -- categorical variable with 6 possible values: `Wife`, `Own-child`, `Husband`, `Not-in-family`, `Other-relative` and `Unmarried`;
+ix) *Race* -- categorical variable with 5 possible values: `White`, `Asian-Pac-Islander`, `Amer-Indian-Eskimo`, `Other` and `Black`;
+x) *Sex* -- categorical variable with 2 possible values: `Female` and `Male`;
+xi) *Capital-gain* -- continuous variable;
+xii) *Capital-loss* -- continuous variable;
+xiii) *Hours-per-week* -- continuous variable;
+xiv) *Native-country* -- categorical variable with 41 possible values: `United-States`, `Cambodia`, `England`, `Puerto-Rico`, `Canada`, `Germany`, `Outlying-US(Guam-USVI-etc)`, `India`, `Japan`, `Greece`, `South`, `China`, `Cuba`, `Iran`, `Honduras`, `Philippines`, `Italy`, `Poland`, `Jamaica`, `Vietnam`, `Mexico`, `Portugal`, `Ireland`, `France`, `Dominican-Republic`, `Laos`, `Ecuador`, `Taiwan`, `Haiti`, `Columbia`, `Hungary`, `Guatemala`, `Nicaragua`, `Scotland`, `Thailand`, `Yugoslavia`, `El-Salvador`, `Trinadad\&Tobago`, `Peru`, `Hong` and `Holand-Netherlands`.
+
+The data file named `adult.data` could be downloaded from (http://archive.ics.uci.edu/ml/datasets/Adult), but a small `snapshoot` of the data is given in Table \@ref(tab:AdultTabTrain1). A full *Exploratory Data Analaysis* is provided in Section \@ref(EDA), which explains the data structure in greater details.
+
+# Exploratory Data Analaysis {#EDA}
+
+Before making any inferences about the data, we first perform simple manipulations over the given dataframe in order to better explain the final data analysis. There are two basic explorations that we run, one is based on *quantitave* measurements as described in Section \@ref(EDA:QuanDE), while the other one is based on *qualitative* assessments -- including data visualisations --  as described in Section \@ref(EDA:QualDE).
+
+## Quantitative Data Explorations {#EDA:QuanDE}
+
+We first start by looking at the (training) data for which a small snapshoot is given as in Table \@ref(tab:AdultTabTrain1) below, which is followed by a summary statistics.
+
+
+```{r AdultTabTrain1, echo = TRUE, comment = NA}
+library(knitr)
+library(data.table)
+adult_data_train <- fread("SuppMaterial/adult.data",data.table=FALSE,sep=",") #R reads more efficiently larger files with `fread`
+colnames(adult_data_train) <- c("X1", "X2", "X3","X4", "X5", "X6", "X7", "X8", "X9","X10", "X11", "X12","X13", "X14", "Y" )
+kable(head(adult_data_train), caption="Adult (Train) Data Snapshoot",align = "rlrlrlllllrrrlr", format.args = list(big.mark = ","))
+summary(adult_data_train)
+```
+
+Note that the above refers to the training data and has a sample size of $32,561$, i.e. around $2/3$ from the whole data $48,842$ and not from its `cleaned` version that is of size $45,222$; we will see later that the `cleaned` training data are of size $30,162$, i.e. around $1/3$ from the total sample of size $45,222$. Similarly, a (testing) data for which a small snapshoot is given as in Table \@ref(tab:AdultTabTest1) below, which is again followed by a summary statistics. Note that the testing data and has a sample size of $16,281$, i.e. around $1/3$ from the whole data $48,842$ and not from its `cleaned` version that is of size $45,222$; we will see later that the `cleaned` testing data are of size $15,060$, i.e. around $1/3$ from the total sample of size $45,222$. Splitting the data into training and testing as $2/3$ and $1/3$ is a standard in machine learning inquiries. 
+
+```{r AdultTabTest1, echo = TRUE, comment = NA}
+adult_data_test <- fread("SuppMaterial/adult-1.test",data.table=FALSE,sep=",")
+colnames(adult_data_test) <- c("X1", "X2", "X3","X4", "X5", "X6", "X7", "X8", "X9","X10", "X11", "X12","X13", "X14", "Y" )
+kable(head(adult_data_test), caption="Adult (Test) Data Snapshoot",align = "rlrlrlllllrrrlr", format.args = list(big.mark = ","))
+summary(adult_data_test)
+```
+
+Let us clean the training data and eliminate the missing values that are identified as `?` in the master (training) file named `adult.data`, which gives you a glimpse of the actual cleaned (training) data that will be further used from now on. 
+
+```{r echo = TRUE, comment = NA}
+adult_data_train_clean <- adult_data_train
+adult_data_train_clean$isNA <- apply(adult_data_train_clean,1,function(x) any(x=="?"))  #find the examples with missing values (have `?`) and marked them 
+adult_data_train_clean <- adult_data_train_clean[-which(adult_data_train_clean$isNA==TRUE),] #eliminate the examples that were marked 
+summary(adult_data_train_clean)
+```
+
+One might have noticed that the working (training) data file, namely `adult_data_train_clean` has one extra column that signifies whether missing values are present in a given example, so that we easily eliminate the examples having missing values.  We could see that the sample size is now reduced to $30,162$ as anticipated before. Let us check the number of columns for the two training data. 
+
+```{r, echo = TRUE}
+ncol(adult_data_train_clean)
+ncol(adult_data_train)
+```
+
+Similarly, a summary of the actual cleaned (testing) data -- that will be further used from now on -- is as follows:
+
+```{r echo = TRUE, comment = NA}
+adult_data_test_clean <- adult_data_test
+adult_data_test_clean$isNA <- apply(adult_data_test_clean,1,function(x) any(x=="?")) #find the examples with missing values (have `?`) and marked them 
+adult_data_test_clean <- adult_data_test_clean[-which(adult_data_test_clean$isNA==TRUE),] #eliminate the examples that were marked 
+summary(adult_data_test_clean)
+```
+
+Once again, the working (testing) data file, namely `adult_data_train_test` has one extra column and its sample size is now reduced to $15,060$ as anticipated before, which could be checked as follows:
+
+```{r, echo = TRUE}
+ncol(adult_data_test_clean)
+ncol(adult_data_test)
+```
+
+The labels distribution of $y$'s are as follows
+
+* Probability for the label $>50K$  is 23.93\% in the *whole (training and testing altogether)* dataframe or 24.78% if the unknown values are removed;
+* Probability for the label $>50K$  is 24.08\% in the *training* dataframe or 24.89% if the unknown values are removed;
+* Probability for the label $>50K$  is 23.62\% in the *testing* dataframe or 24.57% if the unknown values are removed;
+* Probability for the label $<=50K$ : 76.07\% in the *whole (training and testing altogether)* dataframe or 75.22% if the unknown values are removed;
+* Probability for the label $<=50K$ : 75.92\% in the *training* dataframe or 75.11% if the unknown values are removed;
+* Probability for the label $<=50K$ : 76.38\% in the *testing* dataframe or 75.43% if the unknown values are removed.
+
+One could find these pieces of information for the label $>50K$ 
+
+```{r, echo = TRUE}
+c((sum(adult_data_train$Y == '>50K')+sum(adult_data_test$Y == '>50K.'))/(nrow(adult_data_train)+nrow(adult_data_test)),(sum(adult_data_train_clean$Y == '>50K')+sum(adult_data_test_clean$Y == '>50K.'))/(nrow(adult_data_train_clean)+nrow(adult_data_test_clean))) #whole (training and testing altogether) -- with and without the unknown values
+c(sum(adult_data_train$Y == '>50K')/nrow(adult_data_train),sum(adult_data_train_clean$Y == '>50K')/nrow(adult_data_train_clean))#training the unknown values
+c(sum(adult_data_test$Y == '>50K.')/nrow(adult_data_test),sum(adult_data_test_clean$Y == '>50K.')/nrow(adult_data_test_clean))#testing the unknown values
+```
+by noting that the training data record as $>50K$, while the training data record as $>50K.$. Similarly, the label $<=50K$ distribution is given by
+```{r, echo = TRUE}
+c((sum(adult_data_train$Y == '<=50K')+sum(adult_data_test$Y == '<=50K.'))/(nrow(adult_data_train)+nrow(adult_data_test)),(sum(adult_data_train_clean$Y == '<=50K')+sum(adult_data_test_clean$Y == '<=50K.'))/(nrow(adult_data_train_clean)+nrow(adult_data_test_clean)))#whole (training and testing altogether) the unknown values
+c(sum(adult_data_train$Y == '<=50K')/nrow(adult_data_train),sum(adult_data_train_clean$Y == '<=50K')/nrow(adult_data_train_clean))#training the unknown values
+c(sum(adult_data_test$Y == '<=50K.')/nrow(adult_data_test),sum(adult_data_test_clean$Y == '<=50K.')/nrow(adult_data_test_clean))#testing the unknown values
+```
+These findings are in accordance with the label summary given in Section \@ref(DD). These numbers tell us the following:
+
+* Removing the missing values does not change the occurrence of any of the two income labels, i.e. $>50K$  and $<=50K$;
+* The training and testing data show similar label occurrences as in the whole data, and thus the random sampling used to pull out the training data mimics the traits of the population sample -- also referred as whole data;
+* We do not deal with imbalanced data, i.e. when the occurrence of one label is way bigger/smaller than the other label; otherwise, we would have used some bespoke machine learning algorithms that are not too intuitive.
+
+In summary, partitioning the data in this way does not raise concerns with respect to the labels $y$'s, and we next investigate whether the partitioning does have a major effect over the features $\textbf{x}$'s.
+
+The features have various continuous and categorical features, and we would like to understand the strength of dependence amongst the features in training and testing data. Therefore, we looked into the continuous features and first create correlation plots for such features; the pictorial representations are provided in Figures \@ref(fig:CorrPlotTrainDataFigs) for the training data and Figure \@ref(fig:CorrPlotTestDataFigs) for the testing data. 
+
+```{r CorrPlotTrainDataFigs, comment="", message = FALSE, warning = FALSE, fig.align="center",  fig.width=12, fig.height=4, fig.cap = 'Correlation matrix for the continuous features of the training data (left) and cleaned training data (right)'}
+suppressWarnings(library(corrplot))
+par(mfrow=c(1,2))
+tmp_corr_train_data <- cor(adult_data_train[,c(1,3,5,11,12,13)])
+colnames(tmp_corr_train_data) <- c("Age", "Fnlwgt", "Educ-num", "Cap-Gain", "Cap-Loss", "Hour-week")
+rownames(tmp_corr_train_data) <- c("Age", "Fnlwgt", "Educ-num", "Cap-Gain", "Cap-Loss", "Hour-week")
+corrplot(tmp_corr_train_data, method="circle", addCoef.col = "red", tl.col="black", tl.srt=45)
+tmp_corr_train_data_clean <- cor(adult_data_train_clean[,c(1,3,5,11,12,13)])
+colnames(tmp_corr_train_data_clean) <- c("Age", "Fnlwgt", "Educ-num", "Cap-Gain", "Cap-Loss", "Hour-week")
+rownames(tmp_corr_train_data_clean) <- c("Age", "Fnlwgt", "Educ-num", "Cap-Gain", "Cap-Loss", "Hour-week")
+corrplot(tmp_corr_train_data_clean, method="circle",  addCoef.col = "red", tl.col="black", tl.srt=45)
+```
+
+```{r CorrPlotTestDataFigs, comment="", message = FALSE, warning = FALSE, fig.align="center",  fig.width=11, fig.height=4, fig.cap = 'Correlation matrix for the continuous features of the testing data (left) and cleaned testing data (right)'}
+suppressWarnings(library(corrplot))
+par(mfrow=c(1,2))
+tmp_corr_test_data <- cor(adult_data_test[,c(1,3,5,11,12,13)])
+colnames(tmp_corr_test_data) <- c("Age", "Fnlwgt", "Educ-num", "Cap-Gain", "Cap-Loss", "Hour-week")
+rownames(tmp_corr_test_data) <- c("Age", "Fnlwgt", "Educ-num", "Cap-Gain", "Cap-Loss", "Hour-week")
+corrplot(tmp_corr_test_data, method="circle",  addCoef.col = "red", tl.col="black", tl.srt=45)
+tmp_corr_test_data_clean <- cor(adult_data_test_clean[,c(1,3,5,11,12,13)])
+colnames(tmp_corr_test_data_clean) <- c("Age", "Fnlwgt", "Educ-num", "Cap-Gain", "Cap-Loss", "Hour-week")
+rownames(tmp_corr_test_data_clean) <- c("Age", "Fnlwgt", "Educ-num", "Cap-Gain", "Cap-Loss", "Hour-week")
+corrplot(tmp_corr_test_data_clean, method="circle", addCoef.col = "red", tl.col="black", tl.srt=45)
+```
+
+It is clear from Figures \@ref(fig:CorrPlotTrainDataFigs) and \@ref(fig:CorrPlotTestDataFigs) that the current data partitioning leads to similar Spearman's linear correlations in all four datasets, which tells us that the random sampling -- when we selected the split between the training and testing data -- keeps similar data structures in both training and testing data, and the eliminate the missing values does not have on impact either. In addition, we observe that all correlations are relatively small, i.e. around 0, which means that there is no clear evidence of redundant features that would need to be eliminated in case of high correlation. The highest correlation is observed for the pair of features given by *Educ-num vs Cap-Gain* and *Educ-num vs Hour-week*, which are still small. 
+
+Correlations that involve non-continuous features are -- theoretically speaking -- not statistically significant, and therefore not reliable.  Thus, we avoid trying to understand such correlations for the other eight categorical features, i.e. *Workclass*, *Education*, *Marital-status*, *Occupation*, *Relationship*, *Race*, *Sex* and *Native-country*.
+
+Moreover, *Workclass*, *Education*, *Occupation*, *Relationship* and *Native-country* are categorical features with subjective measurements that are not easy to interpret, and we leave them aside; the other three features, namely *Marital-status*, *Race* and *Sex*, are very sensitive features that are informative and interpretable in the people analytics context, where making inferences about the future salary of an individual should not exhibit various gender/racial/social biases. 
+
+Let us look at the three more interpretable features and see whether the cleaned training and testing data differ with respect to the relative frequencies.  The results are given below and it is remarkable how similar the training and testing data in regards with each of these four features, which gives even more evidence that the random sampling error is not significant. 
+
+```{r, echo = TRUE}
+tmp <- as.data.frame(table(adult_data_train_clean$X6)/nrow(adult_data_train_clean))
+#the code is more complex than it should be since the output of the R function `table` has a format that does not allow to change its columns' names, so we need to make this unusual coding 
+colnames(tmp) <- c("Marital-status: Training Data","Percentage")
+kable(tmp,digits = 4)
+tmp <- as.data.frame(table(adult_data_test_clean$X6)/nrow(adult_data_test_clean))
+colnames(tmp) <- c("Marital-status: Testing Data","Percentage")
+kable(tmp,digits = 4)
+tmp <- as.data.frame(table(adult_data_train_clean$X8)/nrow(adult_data_train_clean))
+colnames(tmp) <- c("Relationship: Training Data","Percentage")
+kable(tmp,digits = 4)
+tmp <- as.data.frame(table(adult_data_test_clean$X8)/nrow(adult_data_test_clean))
+colnames(tmp) <- c("Relationship: Testing Data","Percentage")
+kable(tmp,digits = 4)
+tmp <- as.data.frame(table(adult_data_train_clean$X9)/nrow(adult_data_train_clean))
+colnames(tmp) <- c("Race: Training Data","Percentage")
+kable(tmp,digits = 4)
+tmp <- as.data.frame(table(adult_data_test_clean$X9)/nrow(adult_data_test_clean))
+colnames(tmp) <- c("Race: Testing Data","Percentage")
+kable(tmp,digits = 4)
+tmp <- as.data.frame(table(adult_data_train_clean$X10)/nrow(adult_data_train_clean))
+colnames(tmp) <- c("Sex: Training Data","Percentage")
+kable(tmp,digits = 4)
+tmp <- as.data.frame(table(adult_data_test_clean$X10)/nrow(adult_data_test_clean))
+colnames(tmp) <- c("Sex: Testing Data","Percentage")
+kable(tmp,digits = 4)
+```
+
+We now repeat the exercise from Figures \@ref(fig:CorrPlotTrainDataFigs) and \@ref(fig:CorrPlotTestDataFigs), and evaluate the strength of dependence amongst the features in the cleaned training and testing data, by restricting the calculation to age gender. The summary correaltion results are displayed in Figures \@ref(fig:CorrPlotTrainDataSexFigs) and \@ref(fig:CorrPlotTestDataSexFigs), where we again notice similar results irrespective of the value of this very sensitive feature; it should be noticed that `Female` tend to show a more reduced correlation than `Male` and the overall sample, i.e. `Male` and `Female` altogether, for the pair of features *Educ-num vs Cap-Gain*.  
+
+```{r CorrPlotTrainDataSexFigs, comment="", message = FALSE, warning = FALSE, fig.align="center",  fig.width=12, fig.height=4, fig.cap = 'Correlation matrix for the continuous features of the cleaned training data: "Female" only (left), "Male" only (middle) and All genders (right)'}
+suppressWarnings(library(corrplot))
+par(mfrow=c(1,3))
+tmp_corr_train_data_clean_fem <- cor(adult_data_train_clean[adult_data_train_clean$X10 == "Female",c(1,3,5,11,12,13)])
+colnames(tmp_corr_train_data_clean_fem) <- c("Age", "Fnlwgt", "Educ-num", "Cap-Gain", "Capital-Loss", "Hour-week")
+rownames(tmp_corr_train_data_clean_fem) <- c("Age", "Fnlwgt", "Educ-num", "Cap-Gain", "Capital-Loss", "Hour-week")
+corrplot(tmp_corr_train_data_clean_fem, method="circle",  addCoef.col = "red", tl.col="black", tl.srt=45)
+tmp_corr_train_data_clean_male <- cor(adult_data_train_clean[adult_data_train_clean$X10 == "Male",c(1,3,5,11,12,13)])
+colnames(tmp_corr_train_data_clean_male) <- c("Age", "Fnlwgt", "Educ-num", "Cap-Gain", "Capital-Loss", "Hour-week")
+rownames(tmp_corr_train_data_clean_male) <- c("Age", "Fnlwgt", "Educ-num", "Cap-Gain", "Capital-Loss", "Hour-week")
+corrplot(tmp_corr_train_data_clean_male, method="circle",  addCoef.col = "red", tl.col="black", tl.srt=45)
+tmp_corr_train_data_clean <- cor(adult_data_train_clean[,c(1,3,5,11,12,13)])
+colnames(tmp_corr_train_data_clean) <- c("Age", "Fnlwgt", "Educ-num", "Cap-Gain", "Capital-Loss", "Hour-week")
+rownames(tmp_corr_train_data_clean) <- c("Age", "Fnlwgt", "Educ-num", "Cap-Gain", "Capital-Loss", "Hour-week")
+corrplot(tmp_corr_train_data_clean, method="circle",  addCoef.col = "red", tl.col="black", tl.srt=45)
+```
+
+```{r CorrPlotTestDataSexFigs, comment="", message = FALSE, warning = FALSE, fig.align="center",  fig.width=12, fig.height=4, fig.cap = 'Correlation matrix for the continuous features of the cleaned testing data: "Female" only (left), "Male" only (middle) and All genders (right)'}
+suppressWarnings(library(corrplot))
+par(mfrow=c(1,3))
+tmp_corr_test_data_clean_fem <- cor(adult_data_test_clean[adult_data_test_clean$X10 == "Female",c(1,3,5,11,12,13)])
+colnames(tmp_corr_test_data_clean_fem) <- c("Age", "Fnlwgt", "Educ-num", "Cap-Gain", "Cap-Loss", "Hour-week")
+rownames(tmp_corr_test_data_clean_fem) <- c("Age", "Fnlwgt", "Educ-num", "Cap-Gain", "Cap-Loss", "Hour-week")
+corrplot(tmp_corr_test_data_clean_fem, method="circle",  addCoef.col = "red", tl.col="black", tl.srt=45)
+tmp_corr_test_data_clean_male <- cor(adult_data_test_clean[adult_data_test_clean$X10 == "Male",c(1,3,5,11,12,13)])
+colnames(tmp_corr_test_data_clean_male) <- c("Age", "Fnlwgt", "Educ-num", "Cap-Gain", "Cap-Loss", "Hour-week")
+rownames(tmp_corr_test_data_clean_male) <- c("Age", "Fnlwgt", "Educ-num", "Cap-Gain", "Cap-Loss", "Hour-week")
+corrplot(tmp_corr_test_data_clean_male, method="circle",  addCoef.col = "red", tl.col="black", tl.srt=45)
+tmp_corr_test_data_clean <- cor(adult_data_test_clean[,c(1,3,5,11,12,13)])
+colnames(tmp_corr_test_data_clean) <- c("Age", "Fnlwgt", "Educ-num", "Cap-Gain", "Cap-Loss", "Hour-week")
+rownames(tmp_corr_test_data_clean) <- c("Age", "Fnlwgt", "Educ-num", "Cap-Gain", "Cap-Loss", "Hour-week")
+corrplot(tmp_corr_test_data_clean, method="circle",  addCoef.col = "red", tl.col="black", tl.srt=45)
+```
+
+We now examine the possible effects of the *Marital-status* feature over the training and testing datasets, but mainly for the three dominant statuses: `Divorced`, `Married-civ-spouse` and `Never-married`. The Spearman's correlation coefficients are shown in Figures \@ref(fig:CorrPlotTrainDataMSFigs) and \@ref(fig:CorrPlotTestDataMSFigs), where we notice no significant differences in between the training and testing samples for each marital status. There is some variability for the *Educ-num vs Cap-Gain*, but the most visible variation is exhibited by the pair of features *Age vs Hour-week* that shows a quite different correlation for `Never-married` employees; while this could be a personal choice, we should keep this in mind. 
+
+
+```{r CorrPlotTrainDataMSFigs, comment="", message = FALSE, warning = FALSE, fig.align="center",  fig.width=12, fig.height=6, fig.cap = 'Correlation matrix for the continuous features of the cleaned training data: "Divorced" only (upper left), "Married-civ-spouse" only (upper right), "Never-married" (lower left) and All statuses (lower right)'}
+suppressWarnings(library(corrplot))
+par(mfrow=c(2,2))
+tmp_corr_train_data_clean_div <- cor(adult_data_train_clean[adult_data_train_clean$X6 == "Divorced",c(1,3,5,11,12,13)])
+colnames(tmp_corr_train_data_clean_div) <- c("Age", "Fnlwgt", "Educ-num", "Cap-Gain", "Cap-Loss", "Hour-week")
+rownames(tmp_corr_train_data_clean_div) <- c("Age", "Fnlwgt", "Educ-num", "Cap-Gain", "Cap-Loss", "Hour-week")
+corrplot(tmp_corr_train_data_clean_div, method="circle",  addCoef.col = "red", tl.col="black", tl.srt=45)
+tmp_corr_train_data_clean_mcs <- cor(adult_data_train_clean[adult_data_train_clean$X6 == "Married-civ-spouse",c(1,3,5,11,12,13)])
+colnames(tmp_corr_train_data_clean_mcs) <- c("Age", "Fnlwgt", "Educ-num", "Cap-Gain", "Cap-Loss", "Hour-week")
+rownames(tmp_corr_train_data_clean_mcs) <- c("Age", "Fnlwgt", "Educ-num", "Cap-Gain", "Cap-Loss", "Hour-week")
+corrplot(tmp_corr_train_data_clean_mcs, method="circle",  addCoef.col = "red", tl.col="black", tl.srt=45)
+tmp_corr_train_data_clean_nm <- cor(adult_data_train_clean[adult_data_train_clean$X6 == "Never-married",c(1,3,5,11,12,13)])
+colnames(tmp_corr_train_data_clean_nm) <- c("Age", "Fnlwgt", "Educ-num", "Cap-Gain", "Cap-Loss", "Hour-week")
+rownames(tmp_corr_train_data_clean_nm) <- c("Age", "Fnlwgt", "Educ-num", "Cap-Gain", "Cap-Loss", "Hour-week")
+corrplot(tmp_corr_train_data_clean_nm, method="circle",  addCoef.col = "red", tl.col="black", tl.srt=45)
+tmp_corr_train_data_clean <- cor(adult_data_train_clean[,c(1,3,5,11,12,13)])
+colnames(tmp_corr_train_data_clean) <- c("Age", "Fnlwgt", "Educ-num", "Cap-Gain", "Cap-Loss", "Hour-week")
+rownames(tmp_corr_train_data_clean) <- c("Age", "Fnlwgt", "Educ-num", "Cap-Gain", "Cap-Loss", "Hour-week")
+corrplot(tmp_corr_train_data_clean, method="circle",  addCoef.col = "red", tl.col="black", tl.srt=45)
+```
+
+```{r CorrPlotTestDataMSFigs, comment="", message = FALSE, warning = FALSE, fig.align="center",  fig.width=12, fig.height=6, fig.cap = 'Correlation matrix for the continuous features of the cleaned testing data: "Divorced" only (upper left), "Married-civ-spouse" only (upper right), "Never-married" (lower left) and All statuses (lower right)'}
+suppressWarnings(library(corrplot))
+par(mfrow=c(2,2))
+tmp_corr_test_data_clean_div <- cor(adult_data_test_clean[adult_data_test_clean$X6 == "Divorced",c(1,3,5,11,12,13)])
+colnames(tmp_corr_test_data_clean_div) <- c("Age", "Fnlwgt", "Educ-num", "Cap-Gain", "Cap-Loss", "Hour-week")
+rownames(tmp_corr_test_data_clean_div) <- c("Age", "Fnlwgt", "Educ-num", "Cap-Gain", "Cap-Loss", "Hour-week")
+corrplot(tmp_corr_test_data_clean_div, method="circle",  addCoef.col = "red", tl.col="black", tl.srt=45)
+tmp_corr_test_data_clean_mcs <- cor(adult_data_test_clean[adult_data_test_clean$X6 == "Married-civ-spouse",c(1,3,5,11,12,13)])
+colnames(tmp_corr_test_data_clean_mcs) <- c("Age", "Fnlwgt", "Educ-num", "Cap-Gain", "Cap-Loss", "Hour-week")
+rownames(tmp_corr_test_data_clean_mcs) <- c("Age", "Fnlwgt", "Educ-num", "Cap-Gain", "Cap-Loss", "Hour-week")
+corrplot(tmp_corr_test_data_clean_mcs, method="circle",  addCoef.col = "red", tl.col="black", tl.srt=45)
+tmp_corr_test_data_clean_nm <- cor(adult_data_test_clean[adult_data_test_clean$X6 == "Never-married",c(1,3,5,11,12,13)])
+colnames(tmp_corr_test_data_clean_nm) <- c("Age", "Fnlwgt", "Educ-num", "Cap-Gain", "Cap-Loss", "Hour-week")
+rownames(tmp_corr_test_data_clean_nm) <- c("Age", "Fnlwgt", "Educ-num", "Cap-Gain", "Cap-Loss", "Hour-week")
+corrplot(tmp_corr_test_data_clean_nm, method="circle",  addCoef.col = "red", tl.col="black", tl.srt=45)
+tmp_corr_test_data_clean <- cor(adult_data_test_clean[,c(1,3,5,11,12,13)])
+colnames(tmp_corr_test_data_clean) <- c("Age", "Fnlwgt", "Educ-num", "Cap-Gain", "Cap-Loss", "Hour-week")
+rownames(tmp_corr_test_data_clean) <- c("Age", "Fnlwgt", "Educ-num", "Cap-Gain", "Cap-Loss", "Hour-week")
+corrplot(tmp_corr_test_data_clean, method="circle",  addCoef.col = "red", tl.col="black", tl.srt=45)
+```
+
+
+We now examine the possible effects of the *Race* feature over the training and testing datasets, but mainly for the two dominant racial statuses: `Black` and `White`. The Spearman's correlation coefficients are shown in Figures \@ref(fig:CorrPlotTrainDataRaceFigs) and \@ref(fig:CorrPlotTestDataRaceFigs), where we notice no significant differences in between the training and testing samples for the two racial statuses. There is some variability for the *Educ-num vs Cap-Gain* in between `Black` and `White` subsamples, but it is interesting to observe a quite big difference in the `Black` and `White` *Age vs Educ-num* correlation; the `Black` employees seem to be better educated for younger employees, which could be explained by an increased number of students -- with this racial status -- to US higher education after 1980. This concludes the section, but we should keep in mind that the *Race* feature is the most imbalanced one with an overwhelming percentage of `White` employees in the dataset.   
+
+```{r CorrPlotTrainDataRaceFigs, comment="", message = FALSE, warning = FALSE, fig.align="center",  fig.width=12, fig.height=4, fig.cap = 'Correlation matrix for the continuous features of the cleaned training data: "Black" only (left), "White" only (middle) and All racial statuses (right)' }
+suppressWarnings(library(corrplot))
+par(mfrow=c(1,3))
+tmp_corr_train_data_clean_black <- cor(adult_data_train_clean[adult_data_train_clean$X9 == "Black",c(1,3,5,11,12,13)])
+colnames(tmp_corr_train_data_clean_black) <- c("Age", "Fnlwgt", "Educ-num", "Cap-Gain", "Cap-Loss", "Hour-week")
+rownames(tmp_corr_train_data_clean_black) <- c("Age", "Fnlwgt", "Educ-num", "Cap-Gain", "Cap-Loss", "Hour-week")
+corrplot(tmp_corr_train_data_clean_black, method="circle",  addCoef.col = "red", tl.col="black", tl.srt=45)
+tmp_corr_train_data_clean_white <- cor(adult_data_train_clean[adult_data_train_clean$X9 == "White",c(1,3,5,11,12,13)])
+colnames(tmp_corr_train_data_clean_white) <- c("Age", "Fnlwgt", "Educ-num", "Cap-Gain", "Cap-Loss", "Hour-week")
+rownames(tmp_corr_train_data_clean_white) <- c("Age", "Fnlwgt", "Educ-num", "Cap-Gain", "Cap-Loss", "Hour-week")
+corrplot(tmp_corr_train_data_clean_white, method="circle",  addCoef.col = "red", tl.col="black", tl.srt=45)
+tmp_corr_train_data_clean <- cor(adult_data_train_clean[,c(1,3,5,11,12,13)])
+colnames(tmp_corr_train_data_clean) <- c("Age", "Fnlwgt", "Educ-num", "Cap-Gain", "Cap-Loss", "Hour-week")
+rownames(tmp_corr_train_data_clean) <- c("Age", "Fnlwgt", "Educ-num", "Cap-Gain", "Cap-Loss", "Hour-week")
+corrplot(tmp_corr_train_data_clean, method="circle",  addCoef.col = "red", tl.col="black", tl.srt=45)
+```
+
+```{r CorrPlotTestDataRaceFigs, comment="", message = FALSE, warning = FALSE, fig.align="center",  fig.width=12, fig.height=4, fig.cap = 'Correlation matrix for the continuous features of the cleaned testing data: "Black" only (left), "White" only (middle) and All racial statuses (right)'} 
+suppressWarnings(library(corrplot))
+par(mfrow=c(1,3))
+tmp_corr_test_data_clean_black <- cor(adult_data_test_clean[adult_data_test_clean$X9 == "Black",c(1,3,5,11,12,13)])
+colnames(tmp_corr_test_data_clean_black) <- c("Age", "Fnlwgt", "Educ-num", "Cap-Gain", "Cap-Loss", "Hour-week")
+rownames(tmp_corr_test_data_clean_black) <- c("Age", "Fnlwgt", "Educ-num", "Cap-Gain", "Cap-Loss", "Hour-week")
+corrplot(tmp_corr_test_data_clean_black, method="circle",  addCoef.col = "red", tl.col="black", tl.srt=45)
+tmp_corr_test_data_clean_white <- cor(adult_data_test_clean[adult_data_test_clean$X9 == "White",c(1,3,5,11,12,13)])
+colnames(tmp_corr_test_data_clean_white) <- c("Age", "Fnlwgt", "Educ-num", "Cap-Gain", "Cap-Loss", "Hour-week")
+rownames(tmp_corr_test_data_clean_white) <- c("Age", "Fnlwgt", "Educ-num", "Cap-Gain", "Cap-Loss", "Hour-week")
+corrplot(tmp_corr_test_data_clean_white, method="circle",  addCoef.col = "red", tl.col="black", tl.srt=45)
+tmp_corr_test_data_clean <- cor(adult_data_test_clean[,c(1,3,5,11,12,13)])
+colnames(tmp_corr_test_data_clean) <- c("Age", "Fnlwgt", "Educ-num", "Cap-Gain", "Cap-Loss", "Hour-week")
+rownames(tmp_corr_test_data_clean) <- c("Age", "Fnlwgt", "Educ-num", "Cap-Gain", "Cap-Loss", "Hour-week")
+corrplot(tmp_corr_test_data_clean, method="circle",  addCoef.col = "red", tl.col="black", tl.srt=45)
+```
+
+
+## Qualitative Data Explorations {#EDA:QualDE}
+
+Section \@ref(EDA:QuanDE) has shown that our data are homogeneous enough to make extrapolate the inferences run on the testing data, on any other similar data coming form the same population, e.g. the testing data.  In real-life applications, machine learning algorithms are based on observable data and therefore, the testing data do not exist. However, machine learning methodologies are tested on various datasets -- in order to understand the drawbacks of the algorithm in question -- and the common way is to split homogeneous data into training and testing where the models are calibrated on the training data and the algorithm's performance is evaluated on the testing data so that the end-user could make an informed decision of whether a specific method is appropriate for a given data exploration. Having these in mind, we only make further data explorations on the training data, since Section \@ref(EDA:QuanDE) provides enough evidence to believe that the training and testing data have a similar data structure. 
+
+We now investigate the traits of the training data by looking at some histograms, and we first looked at the six continuous features given as Figure \@ref(fig:HistDataTrainContFigs).
+
+```{r HistDataTrainContFigs, comment="", message = FALSE, warning = FALSE, fig.align="center",  fig.width=12, fig.height=6, fig.cap = 'Cleaned training data histograms: "Age" (top left), "Fnlwgt" (top middle), "Educ-num" (top right), "Cap-Gain" (bottom left), "Cap-Loss" (bottom middle) and "Hour-week" (bottom right)'} 
+par(mfrow=c(2,3))
+hist(adult_data_test_clean$X1,main="Age", xlab="Age", border="red", col="green")
+hist(adult_data_test_clean$X3,main="Fnlwgt", xlab="Fnlwgt", border="red", col="green")
+hist(adult_data_test_clean$X5,main="Educ-num", xlab="Educ-num", border="red", col="green")
+hist(adult_data_test_clean$X11,main="Cap-Gain", xlab="Cap-Gain", border="red", col="green")
+hist(adult_data_test_clean$X12,main="Cap-Loss", xlab="Cap-Loss", border="red", col="green")
+hist(adult_data_test_clean$X13,main="Hour-week", xlab="Hour-week", border="red", col="green")
+```
+
+The `Age`, `Fnlwgt`, `Educ-num` and `Hour-week` features are relatively well-distributed across the possible values, while the `Cap-Gain` and `Cap-Loss` features are concentrated on `zero` values so that these two features do not have the expected behaviour of a continuous variable.  Here are the proportion of employees with respective `Positive Cap-Gain`, `Positive Cap-Loss` and `Positive Cap-Gain and Cap-Loss`:
+```{r, echo = TRUE}
+c(sum(adult_data_test_clean$X11>0)/nrow(adult_data_test_clean),sum(adult_data_test_clean$X12>0)/nrow(adult_data_test_clean),sum((adult_data_test_clean$X11>0) & (adult_data_test_clean$X12>0))/nrow(adult_data_test_clean))
+```
+This means that one might need to consider removing the `Cap-Loss` feature from the data analysis, and more importanly, to ensure that any inference is neutral to the value of this feature, which may lead to possible prediction bias. For example, after testing our wealth classifier on the data, we should check whether the classifier makes significant different predictions for employees with `Zero Cap-Loss` and `Positive Cap-Loss` if the training algorithm also includes the `Cap-Loss` feature. 
+
+Further, the histograms for `Positive Cap-Gain` and `Positive Cap-Loss` are given as Figure \@ref(fig:HistDataTrainContPosCapFigs), and show amassed distributed of the two features over the positive spectrum. 
+
+```{r HistDataTrainContPosCapFigs, comment="", message = FALSE, warning = FALSE, fig.align="center",  fig.width=12, fig.height=4, fig.cap = 'Cleaned training data histograms: "Positive Cap-Gain" (left) and "Positive Cap-Loss" (right)'} 
+par(mfrow=c(1,2))
+hist(adult_data_test_clean$X11[adult_data_test_clean$X11>0],main="Positive Cap-Gain", xlab="Cap-Gain", border="red", col="green")
+hist(adult_data_test_clean$X12[adult_data_test_clean$X12>0],main="Positive Cap-Loss", xlab="Cap-Loss", border="red", col="green")
+#hist(adult_data_test_clean$X11[(adult_data_test_clean$X11>0) & (adult_data_test_clean$X12>0)],main="Cap-Gain", xlab="Cap-Gain", border="red", col="green") # no employee has positive Cap-Gain and Cap-Loss
+#hist(adult_data_test_clean$X12[(adult_data_test_clean$X11>0) && adult_data_test_clean$X12>0],main="Cap-Loss", xlab="Cap-Loss", border="red", col="green")
+```
+
+
+
