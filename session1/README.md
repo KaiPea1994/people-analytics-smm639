@@ -7,3 +7,5 @@ This folder contains the following:
   * `EDA_Adult_Data_EDA.Rmd` – exploratory data analysis
   * `coursework` –  a Colab notebook containing a 'read-and-clean' data pipeline along with the 
      description of the coursework
+
+![](data_source.png)
